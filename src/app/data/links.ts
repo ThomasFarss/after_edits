@@ -4,54 +4,20 @@ export type LinkItem = {
   description: string;
 };
 
-export type Category = {
-  name: string;
+export type ModuleId = "videos" | "audios" | "musicas" | "links";
+
+export type Module = {
+  id: ModuleId;
+  label: string;
+  description: string;
   links: LinkItem[];
 };
 
-export const categories: Category[] = [
+export const modules: Module[] = [
   {
-    name: "Plugins e Scripts",
-    links: [
-      {
-        title: "Aescripts + Aeplugins",
-        url: "https://aescripts.com/",
-        description: "Maior marketplace de plugins e scripts para After Effects",
-      },
-      {
-        title: "Motion Bro",
-        url: "https://motionbro.com/",
-        description: "Extensão com pacotes de transições, sons e elementos animados",
-      },
-      {
-        title: "Rocketstock",
-        url: "https://www.rocketstock.com/",
-        description: "Templates e presets gratuitos e pagos para After Effects",
-      },
-    ],
-  },
-  {
-    name: "Presets e Templates",
-    links: [
-      {
-        title: "Motion Array",
-        url: "https://motionarray.com/",
-        description: "Templates, presets de áudio e projetos prontos para After Effects",
-      },
-      {
-        title: "Videohive (Envato)",
-        url: "https://videohive.net/",
-        description: "Marketplace com milhares de templates de motion graphics",
-      },
-      {
-        title: "Mixkit",
-        url: "https://mixkit.co/",
-        description: "Vídeos, músicas e templates gratuitos",
-      },
-    ],
-  },
-  {
-    name: "Assets (Vídeos, Sons, Imagens)",
+    id: "videos",
+    label: "Vídeos",
+    description: "Bancos de vídeo, templates e projetos prontos para edição",
     links: [
       {
         title: "Pexels",
@@ -59,40 +25,101 @@ export const categories: Category[] = [
         description: "Vídeos e fotos gratuitas em alta qualidade",
       },
       {
-        title: "Pixabay",
-        url: "https://pixabay.com/",
-        description: "Banco de imagens, vídeos e músicas livres de direitos",
+        title: "Mixkit",
+        url: "https://mixkit.co/",
+        description: "Vídeos, clipes e templates gratuitos",
       },
       {
-        title: "Freesound",
-        url: "https://freesound.org/",
-        description: "Efeitos sonoros gratuitos para edição",
+        title: "Motion Array",
+        url: "https://motionarray.com/",
+        description: "Templates e projetos prontos para After Effects",
       },
-    ],
-  },
-  {
-    name: "Tutoriais e Comunidade",
-    links: [
       {
-        title: "School of Motion",
-        url: "https://www.schoolofmotion.com/",
-        description: "Cursos e artigos sobre motion design e After Effects",
+        title: "Videohive (Envato)",
+        url: "https://videohive.net/",
+        description: "Marketplace com milhares de templates de motion graphics",
+      },
+      {
+        title: "Rocketstock",
+        url: "https://www.rocketstock.com/",
+        description: "Templates e presets gratuitos e pagos para After Effects",
       },
       {
         title: "Video Copilot",
         url: "https://www.videocopilot.net/",
         description: "Tutoriais avançados de efeitos visuais e composição",
       },
+    ],
+  },
+  {
+    id: "audios",
+    label: "Áudios",
+    description: "Efeitos sonoros e bibliotecas de áudio para seus projetos",
+    links: [
+      {
+        title: "Freesound",
+        url: "https://freesound.org/",
+        description: "Efeitos sonoros gratuitos para edição",
+      },
+      {
+        title: "Motion Bro",
+        url: "https://motionbro.com/",
+        description: "Pacotes de transições e efeitos sonoros para After Effects",
+      },
+      {
+        title: "Zapsplat",
+        url: "https://www.zapsplat.com/",
+        description: "Biblioteca extensa de efeitos sonoros e músicas",
+      },
+    ],
+  },
+  {
+    id: "musicas",
+    label: "Músicas",
+    description: "Trilhas sonoras livres de direitos autorais",
+    links: [
+      {
+        title: "Uppbeat",
+        url: "https://uppbeat.io/",
+        description: "Músicas gratuitas com licença para criadores",
+      },
+      {
+        title: "YouTube Audio Library",
+        url: "https://www.youtube.com/audiolibrary",
+        description: "Biblioteca oficial de músicas e efeitos sonoros do YouTube",
+      },
+      {
+        title: "Pixabay Music",
+        url: "https://pixabay.com/music/",
+        description: "Músicas livres de direitos para qualquer projeto",
+      },
+    ],
+  },
+  {
+    id: "links",
+    label: "Links",
+    description: "Plugins, scripts, comunidades e ferramentas complementares",
+    links: [
+      {
+        title: "Aescripts + Aeplugins",
+        url: "https://aescripts.com/",
+        description: "Maior marketplace de plugins e scripts para After Effects",
+      },
+      {
+        title: "Render Garden",
+        url: "https://www.renderoutgarden.com/",
+        description: "Plugin para acelerar renderizações no After Effects",
+      },
+      {
+        title: "School of Motion",
+        url: "https://www.schoolofmotion.com/",
+        description: "Cursos e artigos sobre motion design e After Effects",
+      },
       {
         title: "r/AfterEffects",
         url: "https://www.reddit.com/r/AfterEffects/",
         description: "Comunidade ativa para tirar dúvidas e compartilhar projetos",
       },
-    ],
-  },
-  {
-    name: "Ferramentas Complementares",
-    links: [
       {
         title: "Adobe Fonts",
         url: "https://fonts.adobe.com/",
@@ -102,11 +129,6 @@ export const categories: Category[] = [
         title: "Coolors",
         url: "https://coolors.co/",
         description: "Gerador de paletas de cores para projetos visuais",
-      },
-      {
-        title: "Render Garden",
-        url: "https://www.renderoutgarden.com/",
-        description: "Plugin para acelerar renderizações no After Effects",
       },
     ],
   },
