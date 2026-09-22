@@ -4,7 +4,7 @@ export type LinkItem = {
   description: string;
 };
 
-export type ModuleId = "videos" | "audios" | "musicas" | "links";
+export type ModuleId = "videos" | "audios" | "musicas" | "packs" | "links";
 
 export type Module = {
   id: ModuleId;
@@ -62,11 +62,6 @@ export const modules: Module[] = [
         description: "Efeitos sonoros gratuitos para edição",
       },
       {
-        title: "Motion Bro",
-        url: "https://motionbro.com/",
-        description: "Pacotes de transições e efeitos sonoros para After Effects",
-      },
-      {
         title: "Zapsplat",
         url: "https://www.zapsplat.com/",
         description: "Biblioteca extensa de efeitos sonoros e músicas",
@@ -96,9 +91,9 @@ export const modules: Module[] = [
     ],
   },
   {
-    id: "links",
-    label: "Links",
-    description: "Plugins, scripts, comunidades e ferramentas complementares",
+    id: "packs",
+    label: "Packs e Plugins",
+    description: "Plugins, scripts e pacotes de recursos para o After Effects",
     links: [
       {
         title: "Aescripts + Aeplugins",
@@ -106,10 +101,27 @@ export const modules: Module[] = [
         description: "Maior marketplace de plugins e scripts para After Effects",
       },
       {
+        title: "Motion Bro",
+        url: "https://motionbro.com/",
+        description: "Extensão com pacotes de transições, sons e elementos animados",
+      },
+      {
         title: "Render Garden",
         url: "https://www.renderoutgarden.com/",
         description: "Plugin para acelerar renderizações no After Effects",
       },
+      {
+        title: "Video Copilot Store",
+        url: "https://www.videocopilot.net/plugins/",
+        description: "Plugins como Element 3D, Optical Flares e Saber",
+      },
+    ],
+  },
+  {
+    id: "links",
+    label: "Links",
+    description: "Comunidades e ferramentas complementares",
+    links: [
       {
         title: "School of Motion",
         url: "https://www.schoolofmotion.com/",

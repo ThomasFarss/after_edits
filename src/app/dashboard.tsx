@@ -34,6 +34,15 @@ const MODULE_ICONS: Record<ModuleId, React.ReactNode> = {
       />
     </svg>
   ),
+  packs: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M20.25 7.5l-8.25-4.5-8.25 4.5m16.5 0v9l-8.25 4.5M20.25 7.5l-8.25 4.5m0 0L3.75 7.5m8.25 4.5v9M3.75 7.5v9l8.25 4.5"
+      />
+    </svg>
+  ),
   links: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path
