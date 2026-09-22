@@ -74,7 +74,7 @@ export default function LoginPage() {
 
       <div className="relative h-64 w-full md:h-auto md:w-1/2">
         <div
-          className="relative h-full w-full bg-[length:auto_75%] bg-bottom bg-no-repeat md:bg-[length:auto_65%] md:bg-center"
+          className="relative h-full w-full bg-[length:auto_65%] bg-bottom bg-no-repeat md:bg-[length:auto_55%] md:bg-center"
           style={{ backgroundImage: "url(/images/logo.png)" }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#201c1e] via-transparent to-transparent md:bg-gradient-to-r" />
