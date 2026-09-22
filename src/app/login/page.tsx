@@ -74,7 +74,7 @@ export default function LoginPage() {
 
       <div className="relative h-64 w-full md:h-auto md:w-1/2">
         <div
-          className="relative h-full w-full bg-contain bg-bottom bg-no-repeat md:bg-cover md:bg-center"
+          className="relative h-full w-full bg-[length:auto_75%] bg-bottom bg-no-repeat md:bg-[length:auto_65%] md:bg-center"
           style={{ backgroundImage: "url(/images/logo.png)" }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#201c1e] via-transparent to-transparent md:bg-gradient-to-r" />
@@ -86,18 +86,13 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             className="rounded-2xl bg-[#211d1f]/85 p-8 backdrop-blur-2xl"
           >
-            <div className="mb-7 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#ca2027] to-[#7a1116] text-lg font-bold text-white shadow-[0_0_25px_rgba(202,32,39,0.6)]">
-                AE
-              </div>
-              <div>
-                <h1 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-xl font-bold text-transparent">
-                  Bem-vindo
-                </h1>
-                <p className="text-xs text-zinc-500">
-                  Acesse o painel de edição
-                </p>
-              </div>
+            <div className="mb-7">
+              <h1 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-xl font-bold text-transparent">
+                Bem-vindo
+              </h1>
+              <p className="text-xs text-zinc-500">
+                Acesse o painel de edição
+              </p>
             </div>
 
             <div className="mb-4">
