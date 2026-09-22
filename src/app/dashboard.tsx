@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { modules, type ModuleId } from "./data/links";
 import AnimatedBackground from "./animated-background";
 import LogoutButton from "./logout-button";
@@ -57,7 +58,15 @@ export default function Dashboard() {
 
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:px-10 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between">
-            <div className="h-10" />
+            <div className="h-11 w-11 overflow-hidden rounded-xl border border-[#ca2027]/50 shadow-[0_0_15px_rgba(202,32,39,0.4)]">
+              <Image
+                src="/images/nav-icon.png"
+                alt="Ícone do painel"
+                width={44}
+                height={44}
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="md:hidden">
               <LogoutButton />
             </div>
