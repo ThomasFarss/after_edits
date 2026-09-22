@@ -34,72 +34,127 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#201c1e] md:flex-row">
-      <div
-        className="relative h-64 w-full bg-cover bg-top md:h-auto md:w-1/2"
-        style={{ backgroundImage: "url(/images/logo.png)" }}
-      >
+      <div className="relative h-64 w-full overflow-hidden md:h-auto md:w-1/2">
+        <div className="absolute inset-0 bg-[#201c1e]" />
+
+        <div
+          className="animated-grid absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(#ca2027 1px, transparent 1px), linear-gradient(90deg, #ca2027 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+
+        <div className="animated-blob-1 absolute -left-24 -top-24 h-96 w-96 rounded-full bg-[#ca2027] opacity-30 blur-[100px]" />
+        <div className="animated-blob-2 absolute -bottom-32 -right-16 h-[28rem] w-[28rem] rounded-full bg-[#ca2027] opacity-20 blur-[110px]" />
+
+        <div
+          className="relative h-full w-full bg-contain bg-bottom bg-no-repeat md:bg-cover md:bg-center"
+          style={{ backgroundImage: "url(/images/logo.png)" }}
+        />
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#201c1e] via-transparent to-transparent md:bg-gradient-to-r" />
       </div>
 
-      <div className="flex w-full items-center justify-center px-6 py-12 md:w-1/2">
+      <div className="relative flex w-full items-center justify-center px-6 py-12 md:w-1/2">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-sm rounded-2xl border border-[#ca2027]/40 bg-[#2a2426] p-8 shadow-[0_0_60px_rgba(202,32,39,0.2)]"
+          className="relative w-full max-w-sm rounded-2xl bg-gradient-to-b from-[#ca2027]/40 via-[#3a3335]/40 to-transparent p-[1px] shadow-[0_0_80px_rgba(202,32,39,0.25)]"
         >
-          <h1 className="mb-1 text-2xl font-bold text-white">Bem-vindo</h1>
-          <p className="mb-6 text-sm text-zinc-400">
-            Entre com suas credenciais para acessar o painel
-          </p>
+          <div className="rounded-2xl bg-[#2a2426]/80 p-8 backdrop-blur-xl">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ca2027] text-lg font-bold text-white shadow-[0_0_20px_rgba(202,32,39,0.5)]">
+                AE
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">Bem-vindo</h1>
+                <p className="text-xs text-zinc-400">
+                  Acesse o painel de edição
+                </p>
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="mb-1 block text-sm font-medium text-zinc-300"
+            <div className="mb-4">
+              <label
+                htmlFor="username"
+                className="mb-1 block text-sm font-medium text-zinc-300"
+              >
+                Usuário
+              </label>
+              <div className="relative">
+                <svg
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                  />
+                </svg>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] py-2.5 pl-10 pr-4 text-white outline-none transition-colors focus:border-[#ca2027] focus:shadow-[0_0_0_3px_rgba(202,32,39,0.15)]"
+                  placeholder="Digite seu usuário"
+                />
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="password"
+                className="mb-1 block text-sm font-medium text-zinc-300"
+              >
+                Senha
+              </label>
+              <div className="relative">
+                <svg
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                  />
+                </svg>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] py-2.5 pl-10 pr-4 text-white outline-none transition-colors focus:border-[#ca2027] focus:shadow-[0_0_0_3px_rgba(202,32,39,0.15)]"
+                  placeholder="Digite sua senha"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="mb-4 rounded-lg bg-[#ca2027]/10 px-3 py-2 text-sm text-[#ff6b70]">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-gradient-to-r from-[#ca2027] to-[#a8181e] py-2.5 font-semibold text-white shadow-[0_4px_20px_rgba(202,32,39,0.35)] transition-transform hover:scale-[1.01] hover:shadow-[0_4px_28px_rgba(202,32,39,0.5)] disabled:opacity-60 disabled:hover:scale-100"
             >
-              Usuário
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] px-4 py-2.5 text-white outline-none transition-colors focus:border-[#ca2027]"
-              placeholder="Digite seu usuário"
-            />
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
           </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium text-zinc-300"
-            >
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] px-4 py-2.5 text-white outline-none transition-colors focus:border-[#ca2027]"
-              placeholder="Digite sua senha"
-            />
-          </div>
-
-          {error && (
-            <p className="mb-4 rounded-lg bg-[#ca2027]/10 px-3 py-2 text-sm text-[#ff6b70]">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-[#ca2027] py-2.5 font-semibold text-white transition-colors hover:bg-[#a8181e] disabled:opacity-60"
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
         </form>
       </div>
     </div>
