@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { modules, type ModuleId } from "./data/links";
 import AnimatedBackground from "./animated-background";
 import LogoutButton from "./logout-button";
@@ -47,106 +46,143 @@ const MODULE_ICONS: Record<ModuleId, React.ReactNode> = {
 
 export default function Dashboard() {
   const [activeModule, setActiveModule] = useState<ModuleId>("videos");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const current = modules.find((m) => m.id === activeModule)!;
 
   return (
-    <div className="relative min-h-screen text-zinc-50">
+    <div className="relative min-h-screen text-zinc-50 md:flex">
       <AnimatedBackground />
 
-      <nav className="sticky top-0 z-20 border-b border-[#ca2027]/30 bg-[#201c1e]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-10">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-lg border border-[#ca2027]/50 shadow-[0_0_15px_rgba(202,32,39,0.4)]">
-              <Image
-                src="/images/logo.png"
-                alt="Logo"
-                width={40}
-                height={40}
-                className="h-full w-full object-cover object-top"
-              />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-white">
-                Painel de Edição
-              </h1>
-              <p className="text-xs text-zinc-500">After Effects</p>
-            </div>
-          </div>
+      <button
+        onClick={() => setSidebarOpen((v) => !v)}
+        className="fixed left-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-lg border border-[#3a3335] bg-[#201c1e]/90 backdrop-blur-xl md:hidden"
+      >
+        <svg
+          className="h-5 w-5 text-white"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
+          />
+        </svg>
+      </button>
 
-          <div className="flex flex-1 items-center justify-between gap-4 sm:justify-end">
-            <div className="flex gap-1 overflow-x-auto rounded-xl border border-[#3a3335] bg-[#181516]/60 p-1">
-              {modules.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setActiveModule(m.id)}
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                    activeModule === m.id
-                      ? "bg-gradient-to-r from-[#ca2027] to-[#a8181e] text-white shadow-[0_0_15px_rgba(202,32,39,0.5)]"
-                      : "text-zinc-400 hover:bg-[#2a2426] hover:text-white"
-                  }`}
-                >
-                  <span className="h-4 w-4">{MODULE_ICONS[m.id]}</span>
-                  {m.label}
-                </button>
-              ))}
-            </div>
-            <LogoutButton />
-          </div>
-        </div>
-      </nav>
-
-      <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-        <div className="fade-in-up mb-8">
-          <h2 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-            {current.label}
-          </h2>
-          <p className="mt-2 text-zinc-400">{current.description}</p>
+      <aside
+        className={`fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-[#ca2027]/25 bg-[#1c1719]/90 backdrop-blur-2xl transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="border-b border-[#3a3335]/60 px-6 py-6">
+          <h1 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-lg font-bold text-transparent">
+            Painel de Edição
+          </h1>
+          <p className="text-xs text-[#ca2027]">After Effects</p>
         </div>
 
-        <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {current.links.map((link) => (
-            <a
-              key={link.url}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group animated-border rounded-2xl p-[1px] transition-transform hover:-translate-y-1"
-              style={{ animationPlayState: "paused" }}
+        <nav className="flex flex-1 flex-col gap-1.5 px-4 py-6">
+          {modules.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => {
+                setActiveModule(m.id);
+                setSidebarOpen(false);
+              }}
+              className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                activeModule === m.id
+                  ? "bg-gradient-to-r from-[#ca2027] to-[#a8181e] text-white shadow-[0_4px_20px_rgba(202,32,39,0.4)]"
+                  : "text-zinc-400 hover:bg-[#2a2426] hover:text-white"
+              }`}
             >
-              <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
-                <div>
-                  <span className="font-semibold text-zinc-50 transition-colors group-hover:text-[#ff6b70]">
-                    {link.title}
-                  </span>
-                  <p className="mt-2 text-sm text-zinc-400">
-                    {link.description}
-                  </p>
-                </div>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#ca2027]">
-                  Acessar
-                  <svg
-                    className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
-                </span>
-              </div>
-            </a>
+              <span
+                className={`h-5 w-5 shrink-0 transition-transform ${
+                  activeModule === m.id ? "" : "group-hover:scale-110"
+                }`}
+              >
+                {MODULE_ICONS[m.id]}
+              </span>
+              {m.label}
+              {activeModule === m.id && (
+                <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-white/80" />
+              )}
+            </button>
           ))}
-        </div>
-      </main>
+        </nav>
 
-      <footer className="border-t border-[#3a3335] px-6 py-6 text-center text-sm text-zinc-500">
-        Painel criado para auxiliar edições no Adobe After Effects
-      </footer>
+        <div className="border-t border-[#3a3335]/60 p-4">
+          <LogoutButton />
+        </div>
+      </aside>
+
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-10 bg-black/50 backdrop-blur-sm md:hidden"
+        />
+      )}
+
+      <div className="relative flex-1">
+        <main className="mx-auto max-w-6xl px-6 py-12 pt-20 sm:px-10 md:pt-12">
+          <div className="fade-in-up mb-8">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-1 text-xs font-medium text-[#ff8a8d]">
+              <span className="h-4 w-4">{MODULE_ICONS[current.id]}</span>
+              Módulo
+            </div>
+            <h2 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
+              {current.label}
+            </h2>
+            <p className="mt-2 text-zinc-400">{current.description}</p>
+          </div>
+
+          <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {current.links.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group animated-border rounded-2xl p-[1px] transition-transform hover:-translate-y-1"
+                style={{ animationPlayState: "paused" }}
+              >
+                <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
+                  <div>
+                    <span className="font-semibold text-zinc-50 transition-colors group-hover:text-[#ff6b70]">
+                      {link.title}
+                    </span>
+                    <p className="mt-2 text-sm text-zinc-400">
+                      {link.description}
+                    </p>
+                  </div>
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#ca2027]">
+                    Acessar
+                    <svg
+                      className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </main>
+
+        <footer className="border-t border-[#3a3335] px-6 py-6 text-center text-sm text-zinc-500">
+          Painel criado para auxiliar edições no Adobe After Effects
+        </footer>
+      </div>
     </div>
   );
 }
