@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -34,27 +33,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black px-6 py-10">
-      <div className="flex w-full max-w-4xl flex-col items-center gap-10 sm:flex-row sm:justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="overflow-hidden rounded-2xl border-4 border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.4)]">
-            <Image
-              src="/images/logo.png"
-              alt="Logo do Painel"
-              width={220}
-              height={220}
-              className="h-56 w-56 object-cover"
-              priority
-            />
-          </div>
-          <p className="text-sm font-medium text-red-500">
-            Painel de Edição — After Effects
-          </p>
-        </div>
+    <div className="flex min-h-screen flex-col bg-[#201c1e] md:flex-row">
+      <div
+        className="relative h-64 w-full bg-cover bg-top md:h-auto md:w-1/2"
+        style={{ backgroundImage: "url(/images/logo.png)" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-[#201c1e] via-transparent to-transparent md:bg-gradient-to-r" />
+      </div>
 
+      <div className="flex w-full items-center justify-center px-6 py-12 md:w-1/2">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-sm rounded-2xl border border-red-900/50 bg-zinc-950 p-8 shadow-[0_0_60px_rgba(220,38,38,0.15)]"
+          className="w-full max-w-sm rounded-2xl border border-[#ca2027]/40 bg-[#2a2426] p-8 shadow-[0_0_60px_rgba(202,32,39,0.2)]"
         >
           <h1 className="mb-1 text-2xl font-bold text-white">Bem-vindo</h1>
           <p className="mb-6 text-sm text-zinc-400">
@@ -74,7 +64,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-white outline-none transition-colors focus:border-red-600"
+              className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] px-4 py-2.5 text-white outline-none transition-colors focus:border-[#ca2027]"
               placeholder="Digite seu usuário"
             />
           </div>
@@ -92,13 +82,13 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-white outline-none transition-colors focus:border-red-600"
+              className="w-full rounded-lg border border-[#3a3335] bg-[#201c1e] px-4 py-2.5 text-white outline-none transition-colors focus:border-[#ca2027]"
               placeholder="Digite sua senha"
             />
           </div>
 
           {error && (
-            <p className="mb-4 rounded-lg bg-red-950/50 px-3 py-2 text-sm text-red-400">
+            <p className="mb-4 rounded-lg bg-[#ca2027]/10 px-3 py-2 text-sm text-[#ff6b70]">
               {error}
             </p>
           )}
@@ -106,7 +96,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-red-600 py-2.5 font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+            className="w-full rounded-lg bg-[#ca2027] py-2.5 font-semibold text-white transition-colors hover:bg-[#a8181e] disabled:opacity-60"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>

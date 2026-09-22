@@ -3,12 +3,12 @@ import LogoutButton from "./logout-button";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="relative border-b border-red-900/40 px-6 py-10 text-center sm:px-10">
+    <div className="min-h-screen bg-[#201c1e] text-zinc-50">
+      <header className="relative border-b border-[#ca2027]/30 px-6 py-10 text-center sm:px-10">
         <div className="absolute right-6 top-6">
           <LogoutButton />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-red-500 sm:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight text-[#ca2027] sm:text-4xl">
           Painel de Edição — After Effects
         </h1>
         <p className="mt-3 text-zinc-400">
@@ -21,9 +21,9 @@ export default function Home() {
           {categories.map((category) => (
             <section
               key={category.name}
-              className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-red-900/60"
+              className="rounded-xl border border-[#3a3335] bg-[#2a2426] p-5 transition-colors hover:border-[#ca2027]/60"
             >
-              <h2 className="mb-4 text-lg font-semibold text-red-500">
+              <h2 className="mb-4 text-lg font-semibold text-[#ca2027]">
                 {category.name}
               </h2>
               <ul className="flex flex-col gap-3">
@@ -33,7 +33,7 @@ export default function Home() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg border border-zinc-800 bg-zinc-950 p-3 transition-colors hover:border-red-700 hover:bg-zinc-800"
+                      className="block rounded-lg border border-[#3a3335] bg-[#201c1e] p-3 transition-colors hover:border-[#ca2027] hover:bg-[#2a2426]"
                     >
                       <span className="font-medium text-zinc-50">
                         {link.title}
@@ -50,7 +50,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-zinc-800 px-6 py-6 text-center text-sm text-zinc-500">
+      <footer className="border-t border-[#3a3335] px-6 py-6 text-center text-sm text-zinc-500">
         Painel criado para auxiliar edições no Adobe After Effects
       </footer>
     </div>
