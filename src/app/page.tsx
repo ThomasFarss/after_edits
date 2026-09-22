@@ -1,10 +1,14 @@
 import { categories } from "./data/links";
+import LogoutButton from "./logout-button";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="border-b border-zinc-800 px-6 py-10 text-center sm:px-10">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <header className="relative border-b border-red-900/40 px-6 py-10 text-center sm:px-10">
+        <div className="absolute right-6 top-6">
+          <LogoutButton />
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight text-red-500 sm:text-4xl">
           Painel de Edição — After Effects
         </h1>
         <p className="mt-3 text-zinc-400">
@@ -17,9 +21,9 @@ export default function Home() {
           {categories.map((category) => (
             <section
               key={category.name}
-              className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-red-900/60"
             >
-              <h2 className="mb-4 text-lg font-semibold text-zinc-100">
+              <h2 className="mb-4 text-lg font-semibold text-red-500">
                 {category.name}
               </h2>
               <ul className="flex flex-col gap-3">
@@ -29,7 +33,7 @@ export default function Home() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg border border-zinc-800 bg-zinc-950 p-3 transition-colors hover:border-zinc-600 hover:bg-zinc-800"
+                      className="block rounded-lg border border-zinc-800 bg-zinc-950 p-3 transition-colors hover:border-red-700 hover:bg-zinc-800"
                     >
                       <span className="font-medium text-zinc-50">
                         {link.title}
