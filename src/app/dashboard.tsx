@@ -54,7 +54,9 @@ export default function Dashboard() {
       <AnimatedBackground />
 
       <nav className="sticky top-0 z-20 border-b border-[#ca2027]/25 bg-[#1c1719]/80 shadow-[0_1px_30px_rgba(202,32,39,0.15)] backdrop-blur-2xl">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ca2027] to-transparent" />
+        <div className="navbar-shimmer absolute inset-x-0 top-0 h-[2px]" />
+        <div className="navbar-glow pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ca2027] to-transparent" />
+        <div className="navbar-glow pointer-events-none absolute inset-x-0 -bottom-6 h-6 bg-gradient-to-b from-[#ca2027]/20 to-transparent blur-md" />
 
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:px-10 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between">
@@ -71,7 +73,8 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-1 items-center justify-between gap-4 md:justify-end">
-            <div className="relative flex w-full gap-1 overflow-x-auto rounded-full border border-[#3a3335] bg-[#181516]/70 p-1 md:w-auto">
+            <div className="animated-border w-full rounded-full p-[1.5px] shadow-[0_0_20px_rgba(202,32,39,0.25)] md:w-auto">
+            <div className="relative flex w-full gap-1 overflow-x-auto rounded-full bg-[#181516]/90 p-1 md:w-auto">
               {modules.map((m) => (
                 <button
                   key={m.id}
@@ -86,6 +89,7 @@ export default function Dashboard() {
                   {m.label}
                 </button>
               ))}
+            </div>
             </div>
             <div className="hidden md:block">
               <LogoutButton />

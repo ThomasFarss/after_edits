@@ -138,3 +138,39 @@ body {
 .fade-in-up {
   animation: fade-in-up 0.6s ease-out both;
 }
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes navbar-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.navbar-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(202, 32, 39, 0.15) 20%,
+    #ff6b70 50%,
+    rgba(202, 32, 39, 0.15) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 5s linear infinite;
+}
+
+.navbar-glow {
+  animation: navbar-glow-pulse 4s ease-in-out infinite;
+}
