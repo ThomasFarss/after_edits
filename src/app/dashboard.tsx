@@ -57,14 +57,7 @@ export default function Dashboard() {
 
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:px-10 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-lg font-bold leading-tight text-transparent">
-                Painel de Edição
-              </h1>
-              <p className="text-[11px] font-medium tracking-wide text-[#ca2027]">
-                AFTER EFFECTS
-              </p>
-            </div>
+            <div className="h-10" />
             <div className="md:hidden">
               <LogoutButton />
             </div>
