@@ -58,15 +58,13 @@ export default function Dashboard() {
 
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:px-10 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between">
-            <div className="h-11 w-11 overflow-hidden rounded-xl border border-[#ca2027]/50 shadow-[0_0_15px_rgba(202,32,39,0.4)]">
-              <Image
-                src="/images/nav-icon.png"
-                alt="Ícone do painel"
-                width={44}
-                height={44}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            <Image
+              src="/images/nav-icon.png"
+              alt="Ícone do painel"
+              width={64}
+              height={64}
+              className="h-16 w-16 object-contain drop-shadow-[0_0_15px_rgba(202,32,39,0.5)]"
+            />
             <div className="md:hidden">
               <LogoutButton />
             </div>
