@@ -222,6 +222,10 @@ async function main() {
   );
   await setRolePermissions(editorRole.id, [
     ...moduleViewKeys,
+    // Sem isso o Editor nunca vê a aba "Admin" no menu principal, mesmo
+    // tendo links.manage/modules.manage — o módulo Admin é só mais um
+    // módulo gated pela permission "module.admin.view".
+    "module.admin.view",
     "links.manage",
   ]);
   await setRolePermissions(viewerRole.id, moduleViewKeys);
