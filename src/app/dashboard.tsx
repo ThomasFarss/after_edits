@@ -6,7 +6,7 @@ import AnimatedBackground from "./animated-background";
 import LogoutButton from "./logout-button";
 import { getModuleIcon } from "./module-icons";
 import AdminPanel, { type AdminData } from "./admin/admin-panel";
-import { LinkQuickEditButton } from "./link-quick-edit";
+import { LinkQuickActions } from "./link-quick-edit";
 
 export type DashboardLink = {
   id: string;
@@ -45,6 +45,14 @@ export default function Dashboard({
         m.key === moduleKey
           ? { ...m, links: m.links.map((l) => (l.id === updatedLink.id ? updatedLink : l)) }
           : m
+      )
+    );
+  }
+
+  function handleLinkDeleted(moduleKey: string, linkId: string) {
+    setModules((prev) =>
+      prev.map((m) =>
+        m.key === moduleKey ? { ...m, links: m.links.filter((l) => l.id !== linkId) } : m
       )
     );
   }
@@ -138,7 +146,12 @@ export default function Dashboard({
               style={{ animationPlayState: "paused" }}
             >
               {canManageLinks && (
-                <LinkQuickEditButton link={link} modules={modules} onUpdated={handleLinkUpdated} />
+                <LinkQuickActions
+                  link={link}
+                  modules={modules}
+                  onUpdated={handleLinkUpdated}
+                  onDeleted={handleLinkDeleted}
+                />
               )}
               <a
                 href={link.url}
@@ -147,7 +160,7 @@ export default function Dashboard({
                 className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60"
               >
                 <div>
-                  <div className="mb-2 flex items-center gap-2 pr-8">
+                  <div className="mb-2 flex items-center gap-2 pr-16">
                     <span className="h-4 w-4 text-[#ca2027]">
                       {getModuleIcon(link.icon ?? "default")}
                     </span>

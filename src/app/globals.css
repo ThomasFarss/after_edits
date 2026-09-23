@@ -167,7 +167,6 @@ body {
   filter: drop-shadow(0 12px 20px var(--btn-glow)) brightness(1.08);
 }
 
-.group:active .pressable-btn,
 .pressable-btn:active {
   letter-spacing: 0px;
   transform: skew(-10deg) translateY(6px);
