@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
 import { ModalPortal } from "./modal-portal";
+import { handleIconFileSelect } from "@/lib/icon-upload";
 import type { DashboardLink } from "./dashboard";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
@@ -98,6 +99,7 @@ function AddLinkModal({
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("default");
   const [customIconUrl, setCustomIconUrl] = useState("");
+  const [iconFileError, setIconFileError] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -121,81 +123,133 @@ function AddLinkModal({
 
   return (
     <ModalPortal onClose={onClose}>
-      <div className="w-full max-w-lg rounded-xl border border-[#ca2027]/40 bg-[#181113] p-4 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ca2027]/10 text-[#ff8a8d]">
-            <PlusIcon className="h-3.5 w-3.5" />
-          </span>
-          <p className="text-sm font-semibold text-zinc-200">Novo link</p>
-        </div>
+      <div
+        className="animated-border w-full max-w-2xl rounded-2xl p-[1px] shadow-[0_25px_70px_rgba(0,0,0,0.6)]"
+        style={{ animationPlayState: "paused" }}
+      >
+        <div className="max-h-[85vh] overflow-y-auto rounded-2xl border border-[#3a3335] bg-[#181113] p-5">
+          <div className="mb-4 flex items-center gap-3 border-b border-[#3a3335] pb-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ca2027]/10 text-[#ff8a8d]">
+              <PlusIcon className="h-4 w-4" />
+            </span>
+            <p className="text-base font-semibold text-white">Novo link</p>
+          </div>
 
-        {error && <p className="mb-3 text-xs text-[#ff6b70]">{error}</p>}
+          {error && (
+            <p className="mb-4 rounded-lg border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-2 text-xs text-[#ff6b70]">
+              {error}
+            </p>
+          )}
 
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-400">Título do botão</label>
-            <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-400">URL de destino</label>
-            <input className={inputClass} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-400">Descrição</label>
-            <input
-              className={inputClass}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descrição"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-xs font-medium text-zinc-400">Ícone</label>
-            <div className="flex flex-wrap gap-2">
-              {ICON_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    setCustomIconUrl("");
-                    setIcon(opt);
-                  }}
-                  title={opt}
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
-                    icon === opt
-                      ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d] shadow-[0_0_0_3px_rgba(202,32,39,0.15)]"
-                      : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/50 hover:text-zinc-200"
-                  }`}
-                >
-                  <span className="h-4 w-4">{getModuleIcon(opt)}</span>
-                </button>
-              ))}
-              {isCustomIconUrl(icon) && (
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#ca2027] bg-[#ca2027]/15 shadow-[0_0_0_3px_rgba(202,32,39,0.15)]">
-                  <span className="h-5 w-5 overflow-hidden rounded">{getModuleIcon(icon)}</span>
-                </span>
-              )}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.3fr_1fr]">
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Título do botão</label>
+                <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">URL de destino</label>
+                <input className={inputClass} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Descrição</label>
+                <input
+                  className={inputClass}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Descrição"
+                />
+              </div>
             </div>
-            <input
-              className={`${inputClass} mt-2`}
-              placeholder="Ou cole a URL de uma imagem"
-              value={customIconUrl}
-              onChange={(e) => {
-                const value = e.target.value;
-                setCustomIconUrl(value);
-                setIcon(value.trim() ? value.trim() : "default");
-              }}
-            />
-          </div>
-        </div>
 
-        <div className="mt-4 flex justify-end gap-2 border-t border-[#3a3335] pt-3">
-          <button type="button" className={ghostButtonClass} onClick={onClose}>
-            Cancelar
-          </button>
-          <button type="button" disabled={saving} className={buttonClass} onClick={handleSave}>
-            {saving ? "Criando..." : "Adicionar"}
-          </button>
+            <div>
+              <label className="mb-2 block text-xs font-medium text-zinc-400">Pré-visualização</label>
+              <div
+                className="animated-border mb-3 rounded-2xl p-[1px]"
+                style={{ animationPlayState: "paused" }}
+              >
+                <div className="flex flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-4">
+                  <div>
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="h-4 w-4 text-[#ca2027]">{getModuleIcon(icon)}</span>
+                      <span className="truncate font-semibold text-zinc-50">{title || "Título do botão"}</span>
+                    </div>
+                    <p className="text-sm text-zinc-400">{description || "A descrição aparece aqui."}</p>
+                  </div>
+                  <span className="pressable-btn mt-4 w-fit">Acessar</span>
+                </div>
+              </div>
+
+              <label className="mb-2 block text-xs font-medium text-zinc-400">Ícone</label>
+              <div className="flex flex-wrap gap-2">
+                {ICON_OPTIONS.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      setCustomIconUrl("");
+                      setIcon(opt);
+                    }}
+                    title={opt}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all ${
+                      icon === opt
+                        ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d] shadow-[0_0_0_3px_rgba(202,32,39,0.15)]"
+                        : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/50 hover:text-zinc-200"
+                    }`}
+                  >
+                    <span className="h-4 w-4">{getModuleIcon(opt)}</span>
+                  </button>
+                ))}
+                {isCustomIconUrl(icon) && (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ca2027] bg-[#ca2027]/15 shadow-[0_0_0_3px_rgba(202,32,39,0.15)]">
+                    <span className="h-4 w-4 overflow-hidden rounded">{getModuleIcon(icon)}</span>
+                  </span>
+                )}
+              </div>
+              <input
+                className={`${inputClass} mt-2`}
+                placeholder="Ou cole a URL de uma imagem"
+                value={customIconUrl}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCustomIconUrl(value);
+                  setIcon(value.trim() ? value.trim() : "default");
+                }}
+              />
+              <div className="mt-2">
+                <label className={`${ghostButtonClass} inline-flex cursor-pointer`}>
+                  Enviar imagem
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      setIconFileError("");
+                      handleIconFileSelect(
+                        e.target.files?.[0],
+                        (dataUrl) => {
+                          setCustomIconUrl(dataUrl);
+                          setIcon(dataUrl);
+                        },
+                        setIconFileError
+                      );
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              {iconFileError && <p className="mt-1 text-[11px] text-[#ff6b70]">{iconFileError}</p>}
+            </div>
+          </div>
+
+          <div className="mt-5 flex justify-end gap-2 border-t border-[#3a3335] pt-4">
+            <button type="button" className={ghostButtonClass} onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="button" disabled={saving} className={buttonClass} onClick={handleSave}>
+              {saving ? "Criando..." : "Adicionar"}
+            </button>
+          </div>
         </div>
       </div>
     </ModalPortal>

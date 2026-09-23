@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "../module-icons";
 import { ModalPortal } from "../modal-portal";
+import { handleIconFileSelect } from "@/lib/icon-upload";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
 
@@ -82,54 +83,6 @@ const dangerButtonClass =
 const ghostButtonClass =
   "rounded-lg border border-[#3a3335] bg-[#181516] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-[#2a2426]";
 
-const MAX_ICON_FILE_BYTES = 2 * 1024 * 1024;
-const ICON_MAX_DIMENSION = 96;
-
-function resizeImageToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
-      img.onload = () => {
-        const scale = Math.min(1, ICON_MAX_DIMENSION / Math.max(img.width, img.height));
-        const width = Math.max(1, Math.round(img.width * scale));
-        const height = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Não foi possível processar a imagem."));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handleIconFileSelect(
-  file: File | undefined,
-  onSuccess: (dataUrl: string) => void,
-  onError: (message: string) => void
-) {
-  if (!file) return;
-  if (file.size > MAX_ICON_FILE_BYTES) {
-    onError("Imagem muito grande. O limite é 2MB.");
-    return;
-  }
-  try {
-    const dataUrl = await resizeImageToDataUrl(file);
-    onSuccess(dataUrl);
-  } catch {
-    onError("Não foi possível processar essa imagem.");
-  }
-}
 
 function UsersIcon({ className }: { className?: string }) {
   return (
@@ -1930,24 +1883,25 @@ function ModuleAccessSection({
   setModuleAdmins: (m: ModuleAdminRow[]) => void;
 }) {
   const [selectedModuleId, setSelectedModuleId] = useState(modules[0]?.id ?? "");
-  const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleAssign(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!selectedModuleId || !selectedUserId) return;
+    if (!selectedModuleId || !selectedUser) return;
     setLoading(true);
     const res = await fetch("/api/module-admins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: selectedUserId, moduleId: selectedModuleId }),
+      body: JSON.stringify({ userId: selectedUser.id, moduleId: selectedModuleId }),
     });
     setLoading(false);
     if (res.ok) {
       const created: ModuleAdminRow = await res.json();
       setModuleAdmins([created, ...moduleAdmins]);
+      setSelectedUser(null);
     } else {
       const data = await res.json();
       setError(typeof data.error === "string" ? data.error : "Erro ao conceder acesso");
@@ -1977,26 +1931,39 @@ function ModuleAccessSection({
         podendo gerenciar todos os módulos normalmente.
       </p>
 
-      {error && <p className="mb-4 text-sm text-[#ff6b70]">{error}</p>}
-
-      <form onSubmit={handleAssign} className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
-        <select className={inputClass} value={selectedModuleId} onChange={(e) => setSelectedModuleId(e.target.value)}>
-          {modules.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        <select className={inputClass} value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name} ({u.email})
-            </option>
-          ))}
-        </select>
-        <button type="submit" disabled={loading} className={buttonClass}>
-          {loading ? "Adicionando..." : "Dar acesso"}
-        </button>
+      <form onSubmit={handleAssign} className="mb-6 rounded-xl border border-[#3a3335] bg-[#181516] p-4">
+        {error && <p className="mb-3 text-sm text-[#ff6b70]">{error}</p>}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-xs font-medium text-zinc-400">Módulo</label>
+            <div className="flex flex-wrap gap-2">
+              {modules.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setSelectedModuleId(m.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    selectedModuleId === m.id
+                      ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d]"
+                      : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/40 hover:text-zinc-200"
+                  }`}
+                >
+                  <span className="h-3.5 w-3.5">{getModuleIcon(m.icon)}</span>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="mb-2 block text-xs font-medium text-zinc-400">Pessoa</label>
+            <UserSearchPicker users={users} selected={selectedUser} onSelect={setSelectedUser} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end border-t border-[#3a3335] pt-3">
+          <button type="submit" disabled={loading || !selectedUser} className={buttonClass}>
+            {loading ? "Adicionando..." : "Dar acesso"}
+          </button>
+        </div>
       </form>
 
       <div className="space-y-4">
@@ -2038,6 +2005,99 @@ function ModuleAccessSection({
         {modules.length === 0 && <p className="text-sm text-zinc-500">Nenhum módulo cadastrado ainda.</p>}
       </div>
     </section>
+  );
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
+}
+
+// Combobox com busca por nome/email — em vez de um <select> gigante quando
+// tem muito usuário cadastrado.
+function UserSearchPicker({
+  users,
+  selected,
+  onSelect,
+}: {
+  users: UserRow[];
+  selected: UserRow | null;
+  onSelect: (user: UserRow | null) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const filtered = users.filter((u) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+  });
+
+  if (selected) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-zinc-100">{selected.name}</p>
+          <p className="truncate text-xs text-zinc-500">{selected.email}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className="shrink-0 rounded-md p-1 text-zinc-400 transition-colors hover:bg-[#2a2426] hover:text-zinc-200"
+          title="Trocar pessoa"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <input
+          className={`${inputClass} pl-9`}
+          placeholder="Buscar por nome ou email..."
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+        />
+      </div>
+      {open && (
+        <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-[#3a3335] bg-[#181516] shadow-lg">
+          {filtered.length === 0 && (
+            <li className="px-3 py-2 text-xs text-zinc-500">Nenhum usuário encontrado.</li>
+          )}
+          {filtered.map((u) => (
+            <li key={u.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onSelect(u);
+                  setQuery("");
+                  setOpen(false);
+                }}
+                className="flex w-full flex-col items-start px-3 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-[#2a2426]"
+              >
+                <span className="font-medium">{u.name}</span>
+                <span className="text-xs text-zinc-500">{u.email}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

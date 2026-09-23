@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
 import { ModalPortal } from "./modal-portal";
+import { handleIconFileSelect } from "@/lib/icon-upload";
 import type { DashboardLink, DashboardModule } from "./dashboard";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
-const MAX_ICON_FILE_BYTES = 2 * 1024 * 1024;
-const ICON_MAX_DIMENSION = 96;
 
 const inputClass =
   "w-full rounded-lg border border-[#3a3335] bg-[#181516] px-3 py-2 text-sm text-white outline-none transition-all focus:border-[#ca2027] focus:shadow-[0_0_0_3px_rgba(202,32,39,0.15)]";
@@ -15,52 +14,6 @@ const buttonClass =
   "rounded-lg bg-gradient-to-r from-[#ca2027] to-[#a8181e] px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_20px_rgba(202,32,39,0.4)] transition-transform hover:scale-[1.015] disabled:opacity-60";
 const ghostButtonClass =
   "rounded-lg border border-[#3a3335] bg-[#181516] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-[#2a2426]";
-
-function resizeImageToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
-      img.onload = () => {
-        const scale = Math.min(1, ICON_MAX_DIMENSION / Math.max(img.width, img.height));
-        const width = Math.max(1, Math.round(img.width * scale));
-        const height = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Não foi possível processar a imagem."));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handleIconFileSelect(
-  file: File | undefined,
-  onSuccess: (dataUrl: string) => void,
-  onError: (message: string) => void
-) {
-  if (!file) return;
-  if (file.size > MAX_ICON_FILE_BYTES) {
-    onError("Imagem muito grande. O limite é 2MB.");
-    return;
-  }
-  try {
-    const dataUrl = await resizeImageToDataUrl(file);
-    onSuccess(dataUrl);
-  } catch {
-    onError("Não foi possível processar essa imagem.");
-  }
-}
 
 function PencilIcon({ className }: { className?: string }) {
   return (

@@ -5,6 +5,7 @@ export type UserAccess = {
   permissions: string[];
   modulePermissions: string[];
   moduleAdminIds: string[];
+  roleName: string | null;
 };
 
 // Busca as permissões direto do banco em vez de confiar no JWT: a sessão
@@ -23,7 +24,7 @@ export async function getFreshUserAccess(userId: string): Promise<UserAccess> {
       moduleAdminOf: { select: { moduleId: true } },
     },
   });
-  if (!user) return { permissions: [], modulePermissions: [], moduleAdminIds: [] };
+  if (!user) return { permissions: [], modulePermissions: [], moduleAdminIds: [], roleName: null };
 
   return {
     permissions: user.role.permissions.map((rp) => rp.permission.key),
@@ -31,6 +32,7 @@ export async function getFreshUserAccess(userId: string): Promise<UserAccess> {
       (rmp) => `${rmp.modulePermission.module.key}:${rmp.modulePermission.action}`
     ),
     moduleAdminIds: user.moduleAdminOf.map((ma) => ma.moduleId),
+    roleName: user.role.name,
   };
 }
 

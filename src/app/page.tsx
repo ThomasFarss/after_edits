@@ -9,7 +9,7 @@ export default async function Home() {
   // depois do login apareçam sem precisar relogar.
   const access = session?.user?.id
     ? await getFreshUserAccess(session.user.id)
-    : { permissions: [], modulePermissions: [], moduleAdminIds: [] };
+    : { permissions: [], modulePermissions: [], moduleAdminIds: [], roleName: null };
   const permissions = access.permissions;
 
   const baseModules = await prisma.module.findMany({
@@ -26,7 +26,12 @@ export default async function Home() {
     const overrides = await prisma.userModuleOverride.findMany({
       where: { userId: session.user.id },
     });
-    const blockedIds = new Set(overrides.filter((o) => !o.granted).map((o) => o.moduleId));
+    // Admin nunca pode ser bloqueado por um override individual — mantém a
+    // garantia de que Admin sempre enxerga todo módulo.
+    const blockedIds =
+      access.roleName === "Admin"
+        ? new Set<string>()
+        : new Set(overrides.filter((o) => !o.granted).map((o) => o.moduleId));
     // Um admin delegado de módulo ("Acesso módulo") enxerga a aba mesmo que
     // seu papel não desse essa permissão — um override explícito de bloqueio
     // ainda prevalece.

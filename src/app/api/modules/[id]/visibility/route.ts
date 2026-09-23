@@ -12,7 +12,11 @@ export async function GET(_request: Request, { params }: Params) {
   if (response) return response;
 
   const [users, overrides] = await Promise.all([
+    // Admin fica de fora: já tem acesso garantido a todo módulo (ver
+    // "Guarantee Admin always has access") e não pode ser bloqueado por um
+    // override individual, então listá-lo aqui só confundiria.
     prisma.user.findMany({
+      where: { role: { name: { not: "Admin" } } },
       select: { id: true, name: true, email: true, role: { select: { name: true } } },
       orderBy: { name: "asc" },
     }),
@@ -48,6 +52,14 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const { userId, state } = parsed.data;
+
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { role: { select: { name: true } } } });
+  if (target?.role.name === "Admin") {
+    return NextResponse.json(
+      { error: "Admin sempre tem acesso a todos os módulos e não pode ser bloqueado." },
+      { status: 400 }
+    );
+  }
 
   if (state === "inherit") {
     await prisma.userModuleOverride.deleteMany({ where: { userId, moduleId } });

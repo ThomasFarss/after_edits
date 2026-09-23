@@ -36,6 +36,16 @@ export async function POST(request: Request, { params }: Params) {
 
   const { moduleId, state } = parsed.data;
 
+  if (state === "block") {
+    const target = await prisma.user.findUnique({ where: { id }, select: { role: { select: { name: true } } } });
+    if (target?.role.name === "Admin") {
+      return NextResponse.json(
+        { error: "Admin sempre tem acesso a todos os módulos e não pode ser bloqueado." },
+        { status: 400 }
+      );
+    }
+  }
+
   if (state === "inherit") {
     await prisma.userModuleOverride.deleteMany({ where: { userId: id, moduleId } });
   } else {
