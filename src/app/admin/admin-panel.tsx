@@ -1300,34 +1300,116 @@ function LinkEditRow({
   const [description, setDescription] = useState(link.description ?? "");
   const [icon, setIcon] = useState(link.icon ?? "default");
   const [moduleId, setModuleId] = useState(link.moduleId);
+  const [customIconUrl, setCustomIconUrl] = useState(isCustomIconUrl(link.icon ?? "") ? link.icon ?? "" : "");
+  const [iconFileError, setIconFileError] = useState("");
 
   return (
-    <li className="rounded-lg border border-[#ca2027]/40 bg-[#181516] p-3 text-sm">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
-        <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título" />
-        <input className={inputClass} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL" />
-        <input
-          className={inputClass}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Descrição"
-        />
-        <select className={inputClass} value={icon} onChange={(e) => setIcon(e.target.value)}>
-          {ICON_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-        <select className={inputClass} value={moduleId} onChange={(e) => setModuleId(e.target.value)}>
-          {modules.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
+    <li className="rounded-xl border border-[#ca2027]/40 bg-[#141112] p-4 text-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ca2027]/10 text-[#ff8a8d]">
+          <PencilIcon className="h-3.5 w-3.5" />
+        </span>
+        <p className="text-sm font-semibold text-zinc-200">Editar link</p>
       </div>
-      <div className="mt-3 flex gap-2">
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Título do botão</label>
+            <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">URL de destino</label>
+            <input className={inputClass} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Descrição</label>
+            <input
+              className={inputClass}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descrição"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Categoria / aba</label>
+            <select className={inputClass} value={moduleId} onChange={(e) => setModuleId(e.target.value)}>
+              {modules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-2 block text-xs font-medium text-zinc-400">Ícone</label>
+          <div className="flex flex-wrap gap-2">
+            {ICON_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => {
+                  setCustomIconUrl("");
+                  setIcon(opt);
+                }}
+                title={opt}
+                className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
+                  icon === opt
+                    ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d] shadow-[0_0_0_3px_rgba(202,32,39,0.15)]"
+                    : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/50 hover:text-zinc-200"
+                }`}
+              >
+                <span className="h-4 w-4">{getModuleIcon(opt)}</span>
+              </button>
+            ))}
+            {isCustomIconUrl(icon) && (
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#ca2027] bg-[#ca2027]/15 shadow-[0_0_0_3px_rgba(202,32,39,0.15)]">
+                <span className="h-5 w-5 overflow-hidden rounded">{getModuleIcon(icon)}</span>
+              </span>
+            )}
+          </div>
+          <input
+            className={`${inputClass} mt-2`}
+            placeholder="Ou cole a URL de uma imagem"
+            value={customIconUrl}
+            onChange={(e) => {
+              const value = e.target.value;
+              setCustomIconUrl(value);
+              setIcon(value.trim() ? value.trim() : "default");
+            }}
+          />
+          <div className="mt-2">
+            <label className={`${ghostButtonClass} inline-flex cursor-pointer`}>
+              Enviar imagem do computador
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  setIconFileError("");
+                  handleIconFileSelect(
+                    e.target.files?.[0],
+                    (dataUrl) => {
+                      setCustomIconUrl(dataUrl);
+                      setIcon(dataUrl);
+                    },
+                    setIconFileError
+                  );
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          {iconFileError && <p className="mt-1 text-[11px] text-[#ff6b70]">{iconFileError}</p>}
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end gap-2 border-t border-[#3a3335] pt-3">
+        <button type="button" className={ghostButtonClass} onClick={onCancel}>
+          Cancelar
+        </button>
         <button
           type="button"
           className={buttonClass}
@@ -1335,9 +1417,6 @@ function LinkEditRow({
           title="Salvar alterações"
         >
           Salvar
-        </button>
-        <button type="button" className={ghostButtonClass} onClick={onCancel}>
-          Cancelar
         </button>
       </div>
     </li>
