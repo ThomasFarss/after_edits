@@ -731,6 +731,7 @@ function UserEditRow({
   const [roleId, setRoleId] = useState(user.roleId);
   const [status, setStatus] = useState<UserRow["status"]>(user.status);
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [overrides, setOverrides] = useState<Record<string, OverrideState>>({});
@@ -818,60 +819,94 @@ function UserEditRow({
     block: { label: "Sempre oculto", className: "border-[#ca2027]/30 bg-[#ca2027]/10 text-[#ff8a8d]" },
   };
 
+  const selectedRole = roles.find((r) => r.id === roleId);
+  const passwordTooShort = newPassword.length > 0 && newPassword.length < 6;
+
   return (
     <>
       <tr className="border-t border-[#ca2027]/40 bg-[#181516]">
-        <td className="py-2 text-zinc-100" colSpan={2}>
-          <div>
-            <p className="font-medium text-zinc-100">{user.name}</p>
-            <p className="text-xs text-zinc-500">{user.email}</p>
-          </div>
-        </td>
-        <td className="py-2" colSpan={2}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <div className="flex items-center gap-2">
-              <select className={inputClass} value={roleId} onChange={(e) => setRoleId(e.target.value)}>
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-              <RoleBadge roleName={roles.find((r) => r.id === roleId)?.name ?? ""} />
+        <td className="py-4" colSpan={5}>
+          <div className="rounded-xl border border-[#ca2027]/30 bg-[#141112] p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-zinc-100">{user.name}</p>
+                <span className="text-xs text-zinc-500">{user.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedRole && <RoleBadge roleName={selectedRole.name} />}
+                <StatusBadge status={status} />
+              </div>
             </div>
-            <select
-              className={inputClass}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as UserRow["status"])}
-            >
-              <option value="ACTIVE">Ativo</option>
-              <option value="INACTIVE">Inativo</option>
-              <option value="INVITED">Convidado</option>
-            </select>
-            <input
-              className={inputClass}
-              type="password"
-              placeholder="Nova senha (opcional)"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </div>
-          {error && <p className="mt-2 text-xs text-[#ff6b70]">{error}</p>}
-        </td>
-        <td className="py-2">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={handleSave}
-              className={buttonClass}
-              title="Salvar alterações"
-            >
-              {saving ? "Salvando..." : "Salvar"}
-            </button>
-            <button type="button" onClick={onCancel} className={ghostButtonClass}>
-              Cancelar
-            </button>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_1.4fr]">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Papel</label>
+                <select className={inputClass} value={roleId} onChange={(e) => setRoleId(e.target.value)}>
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Status</label>
+                <select
+                  className={inputClass}
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as UserRow["status"])}
+                >
+                  <option value="ACTIVE">Ativo</option>
+                  <option value="INACTIVE">Inativo</option>
+                  <option value="INVITED">Convidado</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">
+                  Redefinir senha <span className="font-normal text-zinc-500">(opcional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    className={`${inputClass} pr-10`}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Deixe em branco para manter a atual"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-500 transition-colors hover:text-zinc-200"
+                    title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className={`mt-1 text-[11px] ${passwordTooShort ? "text-[#ff6b70]" : "text-zinc-500"}`}>
+                  {newPassword ? "Mínimo 6 caracteres." : "O usuário mantém a senha atual se este campo ficar vazio."}
+                </p>
+              </div>
+            </div>
+
+            {error && <p className="mt-3 text-xs text-[#ff6b70]">{error}</p>}
+
+            <div className="mt-4 flex justify-end gap-2 border-t border-[#3a3335] pt-3">
+              <button type="button" onClick={onCancel} className={ghostButtonClass}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={handleSave}
+                className={buttonClass}
+                title="Salvar alterações"
+              >
+                {saving ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
           </div>
         </td>
       </tr>
