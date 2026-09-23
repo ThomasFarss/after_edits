@@ -1305,8 +1305,8 @@ function LinksSection({
                     <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-4 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
                       <div>
                         <div className="mb-2 flex items-start justify-between gap-2">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <span className="h-4 w-4 shrink-0 text-[#ca2027]">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <span className="h-6 w-6 shrink-0 text-[#ca2027]">
                               {getModuleIcon(link.icon ?? "default")}
                             </span>
                             <span className="truncate font-semibold text-zinc-50">{link.title}</span>
