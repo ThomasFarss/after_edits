@@ -256,8 +256,8 @@ export default function Dashboard({
                 className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60"
               >
                 <div>
-                  <div className="mb-2 flex items-center gap-2 pr-16">
-                    <span className="h-4 w-4 text-[#ca2027]">
+                  <div className="mb-2 flex items-center gap-2.5 pr-16">
+                    <span className="h-6 w-6 shrink-0 text-[#ca2027]">
                       {getModuleIcon(link.icon ?? "default")}
                     </span>
                     <span className="font-semibold text-zinc-50 transition-colors group-hover:text-[#ff6b70]">
