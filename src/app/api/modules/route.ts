@@ -51,9 +51,15 @@ export async function POST(request: Request) {
     create: { key: moduleData.permissionKey, description: `Acesso ao módulo ${moduleData.label}` },
   });
 
-  if (roleIds && roleIds.length > 0) {
+  // Admin sempre enxerga todos os módulos, independente do que foi marcado
+  // em "Quem pode ver esse módulo".
+  const adminRole = await prisma.role.findUnique({ where: { name: "Admin" } });
+  const grantRoleIds = new Set(roleIds ?? []);
+  if (adminRole) grantRoleIds.add(adminRole.id);
+
+  if (grantRoleIds.size > 0) {
     await prisma.rolePermission.createMany({
-      data: roleIds.map((roleId) => ({ roleId, permissionId: permission.id })),
+      data: Array.from(grantRoleIds).map((roleId) => ({ roleId, permissionId: permission.id })),
       skipDuplicates: true,
     });
   }

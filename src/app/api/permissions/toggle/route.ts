@@ -29,6 +29,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Módulo ou papel não encontrado" }, { status: 404 });
   }
 
+  if (role.name === "Admin") {
+    return NextResponse.json(
+      { error: "O papel Admin sempre tem acesso a todos os módulos." },
+      { status: 409 }
+    );
+  }
+
   const permission = await prisma.permission.upsert({
     where: { key: module.permissionKey },
     update: {},

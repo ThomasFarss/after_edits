@@ -208,6 +208,18 @@ function EyeOffIcon({ className }: { className?: string }) {
   );
 }
 
+function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+      />
+    </svg>
+  );
+}
+
 function DotIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -1550,6 +1562,8 @@ function ModulesSection({
   }
 
   function toggleRole(roleId: string) {
+    // Admin sempre enxerga todos os módulos, então não dá pra desmarcá-lo aqui.
+    if (roles.find((r) => r.id === roleId)?.name === "Admin") return;
     setSelectedRoleIds((prev) =>
       prev.includes(roleId) ? prev.filter((id) => id !== roleId) : [...prev, roleId]
     );
@@ -1700,28 +1714,34 @@ function ModulesSection({
             <div>
               <label className="mb-2 block text-xs text-zinc-500">Quem pode ver esse módulo</label>
               <div className="flex flex-wrap gap-2">
-                {roles.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => toggleRole(r.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                      selectedRoleIds.includes(r.id)
-                        ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d]"
-                        : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/40 hover:text-zinc-200"
-                    }`}
-                  >
-                    <span
-                      className={`h-3.5 w-3.5 rounded-sm border ${
-                        selectedRoleIds.includes(r.id) ? "border-[#ca2027] bg-[#ca2027]" : "border-zinc-500"
-                      }`}
-                    />
-                    {r.name}
-                  </button>
-                ))}
+                {roles.map((r) => {
+                  const isAdmin = r.name === "Admin";
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      disabled={isAdmin}
+                      onClick={() => toggleRole(r.id)}
+                      title={isAdmin ? "Admin sempre tem acesso a todos os módulos" : undefined}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all disabled:cursor-not-allowed ${
+                        selectedRoleIds.includes(r.id)
+                          ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d]"
+                          : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/40 hover:text-zinc-200"
+                      } ${isAdmin ? "opacity-80" : ""}`}
+                    >
+                      <span
+                        className={`h-3.5 w-3.5 rounded-sm border ${
+                          selectedRoleIds.includes(r.id) ? "border-[#ca2027] bg-[#ca2027]" : "border-zinc-500"
+                        }`}
+                      />
+                      {r.name}
+                      {isAdmin && <LockIcon className="h-3 w-3" />}
+                    </button>
+                  );
+                })}
               </div>
               <p className="mt-1 text-[11px] text-zinc-500">
-                Só quem tiver um desses papéis vai ver essa aba no menu. Dá pra mudar depois em Auditoria/permissões.
+                Só quem tiver um desses papéis vai ver essa aba no menu (Admin sempre vê tudo). Dá pra mudar depois em Auditoria/permissões.
               </p>
             </div>
 
@@ -1963,27 +1983,34 @@ function PermissionsSection({
                   </td>
                   {roles.map((r) => {
                     const key = `${r.id}:${m.id}`;
-                    const granted = isGranted(r.id, m.id);
+                    const isAdmin = r.name === "Admin";
+                    const granted = isAdmin || isGranted(r.id, m.id);
                     return (
                       <td key={r.id} className="py-3 text-center">
                         <button
                           type="button"
-                          disabled={pending === key}
+                          disabled={pending === key || isAdmin}
                           onClick={() => handleToggle(r.id, m.id)}
                           title={
-                            granted
+                            isAdmin
+                              ? "Admin sempre tem acesso a todos os módulos"
+                              : granted
                               ? `${r.name} pode ver "${m.label}" — clique pra revogar`
                               : `${r.name} não vê "${m.label}" — clique pra liberar`
                           }
-                          className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all disabled:opacity-50 ${
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all disabled:cursor-not-allowed disabled:opacity-80 ${
                             granted
                               ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
                               : "border-[#3a3335] bg-[#181516] text-transparent hover:border-zinc-500"
                           }`}
                         >
-                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
+                          {isAdmin ? (
+                            <LockIcon className="h-3.5 w-3.5" />
+                          ) : (
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          )}
                         </button>
                       </td>
                     );
