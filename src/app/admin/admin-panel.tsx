@@ -433,6 +433,25 @@ function CollapsibleForm({
   );
 }
 
+function Modal({
+  onClose,
+  children,
+}: {
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
@@ -1006,7 +1025,8 @@ function LinksSection({
     moduleId: modules[0]?.id ?? "",
   });
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingLink, setEditingLink] = useState<LinkRow | null>(null);
+  const [editError, setEditError] = useState("");
   const [customIconUrl, setCustomIconUrl] = useState("");
   const [iconFileError, setIconFileError] = useState("");
 
@@ -1048,6 +1068,7 @@ function LinksSection({
   }
 
   async function handleSaveEdit(link: LinkRow, patch: Partial<LinkRow>) {
+    setEditError("");
     const res = await fetch(`/api/links/${link.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -1062,8 +1083,11 @@ function LinksSection({
           return m.id === updated.moduleId ? { ...m, links: [...withoutOld, updated] } : { ...m, links: withoutOld };
         })
       );
-      setEditingId(null);
+      setEditingLink(null);
       onChange();
+    } else {
+      const data = await res.json();
+      setEditError(typeof data.error === "string" ? data.error : "Erro ao salvar link");
     }
   }
 
@@ -1223,63 +1247,93 @@ function LinksSection({
         </form>
       </CollapsibleForm>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {modules.map((m) => (
           <div key={m.id}>
-            <h3 className="mb-2 flex items-center gap-2 rounded-r border-l-2 border-[#ca2027]/40 bg-[#ca2027]/5 px-3 py-1.5 text-sm font-semibold text-zinc-300">
+            <h3 className="mb-3 flex items-center gap-2 rounded-r border-l-2 border-[#ca2027]/40 bg-[#ca2027]/5 px-3 py-1.5 text-sm font-semibold text-zinc-300">
               <span className="h-4 w-4 text-[#ca2027]">{getModuleIcon(m.icon)}</span>
               {m.label}
             </h3>
-            <ul className="space-y-2">
-              {m.links.map((link) =>
-                editingId === link.id ? (
-                  <LinkEditRow
+            {m.links.length === 0 ? (
+              <p className="text-xs text-zinc-500">Nenhum link cadastrado.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {m.links.map((link) => (
+                  <div
                     key={link.id}
-                    link={link}
-                    modules={modules}
-                    onCancel={() => setEditingId(null)}
-                    onSave={(patch) => handleSaveEdit(link, patch)}
-                  />
-                ) : (
-                  <li
-                    key={link.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-[#3a3335] bg-[#181516] px-3 py-2 text-sm"
+                    className="group animated-border rounded-2xl p-[1px]"
+                    style={{ animationPlayState: "paused" }}
                   >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="h-4 w-4 shrink-0 text-[#ca2027]">
-                        {getModuleIcon(link.icon ?? "default")}
-                      </span>
-                      <div className="min-w-0">
-                        <span className="font-medium text-zinc-100">{link.title}</span>
-                        <span className="ml-2 truncate text-zinc-500">{link.url}</span>
+                    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-4 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
+                      <div>
+                        <div className="mb-2 flex items-start justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="h-4 w-4 shrink-0 text-[#ca2027]">
+                              {getModuleIcon(link.icon ?? "default")}
+                            </span>
+                            <span className="truncate font-semibold text-zinc-50">{link.title}</span>
+                          </div>
+                          <div className="flex shrink-0 gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditError("");
+                                setEditingLink(link);
+                              }}
+                              className="rounded-md border border-[#3a3335] bg-[#181516] p-1.5 text-zinc-400 transition-colors hover:border-[#ca2027]/50 hover:text-[#ff8a8d]"
+                              title="Editar link"
+                            >
+                              <PencilIcon className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(link)}
+                              className="rounded-md border border-red-800 bg-red-950/40 p-1.5 text-red-400 transition-colors hover:bg-red-900/50"
+                              title="Excluir link"
+                            >
+                              <TrashIcon className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-zinc-400">{link.description}</p>
                       </div>
+                      <div className="mt-4 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditError("");
+                            setEditingLink(link);
+                          }}
+                          className="pressable-btn w-fit"
+                          title="Clique para editar o link"
+                        >
+                          Editar link
+                          <PencilIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <p className="mt-2 truncate text-[11px] text-zinc-600" title={link.url}>
+                        {link.url}
+                      </p>
                     </div>
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        onClick={() => setEditingId(link.id)}
-                        className={`inline-flex items-center gap-1 ${ghostButtonClass}`}
-                        title="Editar informações"
-                      >
-                        <PencilIcon className="h-3.5 w-3.5" /> Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(link)}
-                        className={`inline-flex items-center gap-1 ${dangerButtonClass}`}
-                        title="Ação permanente — não pode ser desfeita"
-                      >
-                        <TrashIcon className="h-3.5 w-3.5" /> Excluir
-                      </button>
-                    </div>
-                  </li>
-                )
-              )}
-              {m.links.length === 0 && (
-                <li className="text-xs text-zinc-500">Nenhum link cadastrado.</li>
-              )}
-            </ul>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {editingLink && (
+        <Modal onClose={() => setEditingLink(null)}>
+          <LinkEditRow
+            link={editingLink}
+            modules={modules}
+            error={editError}
+            onCancel={() => setEditingLink(null)}
+            onSave={(patch) => handleSaveEdit(editingLink, patch)}
+          />
+        </Modal>
+      )}
     </section>
   );
 }
@@ -1287,11 +1341,13 @@ function LinksSection({
 function LinkEditRow({
   link,
   modules,
+  error,
   onCancel,
   onSave,
 }: {
   link: LinkRow;
   modules: ModuleRow[];
+  error?: string;
   onCancel: () => void;
   onSave: (patch: Partial<LinkRow>) => void;
 }) {
@@ -1304,13 +1360,27 @@ function LinkEditRow({
   const [iconFileError, setIconFileError] = useState("");
 
   return (
-    <li className="rounded-xl border border-[#ca2027]/40 bg-[#141112] p-4 text-sm">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ca2027]/10 text-[#ff8a8d]">
-          <PencilIcon className="h-3.5 w-3.5" />
-        </span>
-        <p className="text-sm font-semibold text-zinc-200">Editar link</p>
+    <div className="rounded-xl border border-[#ca2027]/40 bg-[#141112] p-4 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ca2027]/10 text-[#ff8a8d]">
+            <PencilIcon className="h-3.5 w-3.5" />
+          </span>
+          <p className="text-sm font-semibold text-zinc-200">Editar link</p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-[#2a2426] hover:text-zinc-200"
+          title="Fechar"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
+
+      {error && <p className="mb-3 text-xs text-[#ff6b70]">{error}</p>}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-3">
@@ -1419,7 +1489,7 @@ function LinkEditRow({
           Salvar
         </button>
       </div>
-    </li>
+    </div>
   );
 }
 
