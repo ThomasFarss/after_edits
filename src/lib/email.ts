@@ -1,19 +1,22 @@
-// Envio simples via API REST da Resend (sem SDK) — configurar no ambiente:
-// RESEND_API_KEY, ACCESS_REQUEST_TO_EMAIL e, opcionalmente,
-// ACCESS_REQUEST_FROM_EMAIL (padrão: onboarding@resend.dev, domínio de
-// testes da Resend que não precisa de verificação).
+// Envio simples via API REST da Resend (sem SDK) — só falta configurar
+// RESEND_API_KEY no ambiente (crie uma conta grátis em resend.com). O
+// destinatário já vem com um padrão; ACCESS_REQUEST_TO_EMAIL só é preciso se
+// quiser mandar pra outro email. ACCESS_REQUEST_FROM_EMAIL é opcional (padrão:
+// onboarding@resend.dev, domínio de testes que não precisa de verificação).
 // Sem RESEND_API_KEY configurada, o envio é pulado silenciosamente — o
 // pedido continua salvo no banco e visível na aba "Solicitações" do Admin.
+const DEFAULT_TO_EMAIL = "thomasgfariass@gmail.com";
+
 export async function sendAccessRequestEmail(data: {
   name: string;
   reason: string;
   referredBy: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const to = process.env.ACCESS_REQUEST_TO_EMAIL;
-  if (!apiKey || !to) {
+  const to = process.env.ACCESS_REQUEST_TO_EMAIL ?? DEFAULT_TO_EMAIL;
+  if (!apiKey) {
     console.warn(
-      "[access-request] RESEND_API_KEY/ACCESS_REQUEST_TO_EMAIL não configurados — email não enviado, pedido só ficou salvo no banco."
+      "[access-request] RESEND_API_KEY não configurada — email não enviado, pedido só ficou salvo no banco."
     );
     return { sent: false as const };
   }
