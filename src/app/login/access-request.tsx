@@ -76,7 +76,7 @@ function AccessRequestModal({ onClose }: { onClose: () => void }) {
 
   return (
     <ModalPortal onClose={onClose}>
-      <div className="w-full max-w-sm rounded-2xl border border-[#ca2027]/40 bg-[#181113] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="w-full max-w-lg rounded-2xl border border-[#ca2027]/40 bg-[#181113] p-7 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
         {sent ? (
           <div className="text-center">
             <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
@@ -104,40 +104,42 @@ function AccessRequestModal({ onClose }: { onClose: () => void }) {
 
             {error && <p className="mb-3 text-xs text-[#ff6b70]">{error}</p>}
 
-            <div className="space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-zinc-400">Seu nome</label>
-                <input
-                  className={inputClass}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Como podemos te chamar"
-                  required
-                />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-zinc-400">Seu nome</label>
+                  <input
+                    className={inputClass}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Como podemos te chamar"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-zinc-400">Quem te passou o link?</label>
+                  <input
+                    className={inputClass}
+                    value={referredBy}
+                    onChange={(e) => setReferredBy(e.target.value)}
+                    placeholder="Nome de quem te indicou"
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-zinc-400">Por que você quer acesso?</label>
                 <textarea
-                  className={`${inputClass} h-16 resize-none`}
+                  className={`${inputClass} h-24 resize-none`}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Conte rapidinho o motivo"
                   required
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-zinc-400">Quem te passou o link?</label>
-                <input
-                  className={inputClass}
-                  value={referredBy}
-                  onChange={(e) => setReferredBy(e.target.value)}
-                  placeholder="Nome de quem te indicou"
-                  required
-                />
-              </div>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-5 space-y-2">
               <button type="submit" disabled={loading} className={buttonClass}>
                 {loading ? "Enviando..." : "Enviar pedido"}
               </button>
