@@ -60,13 +60,16 @@ export default async function AdminPage() {
     return p.roles.map((rp) => ({ roleId: rp.roleId, moduleId }));
   });
 
-  const moduleAdmins = await prisma.moduleAdmin.findMany({
-    include: {
-      user: { select: { id: true, name: true, email: true } },
-      module: { select: { id: true, key: true, label: true, icon: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [moduleAdmins, accessRequests] = await Promise.all([
+    prisma.moduleAdmin.findMany({
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        module: { select: { id: true, key: true, label: true, icon: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.accessRequest.findMany({ orderBy: { createdAt: "desc" } }),
+  ]);
 
   return (
     <AdminPanel
@@ -83,6 +86,7 @@ export default async function AdminPage() {
       canManageModules={permissions.includes("modules.manage")}
       initialPermissionGrants={permissionGrants}
       initialModuleAdmins={moduleAdmins}
+      initialAccessRequests={accessRequests.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
     />
   );
 }

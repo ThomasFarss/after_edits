@@ -150,6 +150,7 @@ export default function Dashboard({
             canManageModules={adminData.canManageModules}
             initialPermissionGrants={adminData.permissionGrants}
             initialModuleAdmins={adminData.moduleAdmins}
+            initialAccessRequests={adminData.accessRequests}
           />
         ) : (
         <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

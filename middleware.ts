@@ -12,11 +12,16 @@ const { auth } = NextAuth(authConfig);
 // (permissionKey de cada rota, ex: /admin exigindo "module.admin.view")
 // é feita em Server Components (layout/page) que já rodam em Node e podem
 // consultar o banco diretamente.
+// Rotas públicas mesmo sem sessão: /login (a própria tela) e o endpoint que
+// ela usa pra enviar pedido de acesso — quem está pedindo ainda não tem conta.
+const PUBLIC_PATHS = ["/login", "/api/access-requests"];
+
 export default auth((req) => {
   const isAuthenticated = !!req.auth;
   const { pathname } = req.nextUrl;
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  if (!isAuthenticated && pathname !== "/login") {
+  if (!isAuthenticated && !isPublicPath) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
   }

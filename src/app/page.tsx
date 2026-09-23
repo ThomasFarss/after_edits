@@ -121,15 +121,20 @@ export default async function Home() {
       });
     }
 
-    const moduleAdmins = canManageUsers
-      ? await prisma.moduleAdmin.findMany({
-          include: {
-            user: { select: { id: true, name: true, email: true } },
-            module: { select: { id: true, key: true, label: true, icon: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        })
-      : [];
+    const [moduleAdmins, accessRequests] = await Promise.all([
+      canManageUsers
+        ? prisma.moduleAdmin.findMany({
+            include: {
+              user: { select: { id: true, name: true, email: true } },
+              module: { select: { id: true, key: true, label: true, icon: true } },
+            },
+            orderBy: { createdAt: "desc" },
+          })
+        : Promise.resolve([]),
+      canManageUsers
+        ? prisma.accessRequest.findMany({ orderBy: { createdAt: "desc" } })
+        : Promise.resolve([]),
+    ]);
 
     adminData = {
       users,
@@ -145,6 +150,7 @@ export default async function Home() {
       canManageModules,
       permissionGrants,
       moduleAdmins,
+      accessRequests: accessRequests.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
     };
   }
 

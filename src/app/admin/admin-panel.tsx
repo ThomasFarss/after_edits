@@ -59,6 +59,14 @@ export type ModuleAdminRow = {
   module: { id: string; key: string; label: string; icon: string };
 };
 
+export type AccessRequestRow = {
+  id: string;
+  name: string;
+  reason: string;
+  referredBy: string;
+  createdAt: string;
+};
+
 export type AdminData = {
   users: UserRow[];
   roles: Role[];
@@ -70,6 +78,7 @@ export type AdminData = {
   canManageModules: boolean;
   permissionGrants: PermissionGrant[];
   moduleAdmins: ModuleAdminRow[];
+  accessRequests: AccessRequestRow[];
 };
 
 const cardClass =
@@ -112,6 +121,18 @@ function ClockListIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+      />
     </svg>
   );
 }
@@ -257,6 +278,7 @@ export default function AdminPanel({
   canManageModules,
   initialPermissionGrants,
   initialModuleAdmins,
+  initialAccessRequests,
 }: {
   initialUsers: UserRow[];
   roles: Role[];
@@ -268,11 +290,13 @@ export default function AdminPanel({
   canManageModules: boolean;
   initialPermissionGrants: PermissionGrant[];
   initialModuleAdmins: ModuleAdminRow[];
+  initialAccessRequests: AccessRequestRow[];
 }) {
   const [users, setUsers] = useState(initialUsers);
   const [modules, setModules] = useState(initialModules);
   const [auditTotal, setAuditTotal] = useState(initialAuditLogsTotal);
   const [moduleAdmins, setModuleAdmins] = useState(initialModuleAdmins);
+  const [accessRequests, setAccessRequests] = useState(initialAccessRequests);
   const router = useRouter();
 
   function refresh() {
@@ -289,6 +313,7 @@ export default function AdminPanel({
     { key: "links", label: "Links", show: canManageLinks },
     { key: "modules", label: "Módulos", show: canManageModules },
     { key: "module-access", label: "Acesso módulo", show: canManageUsers },
+    { key: "access-requests", label: "Solicitações", show: canManageUsers },
     { key: "permissions", label: "Permissões", show: canManageUsers },
     { key: "audit", label: "Auditoria", show: canManageUsers },
   ] as const;
@@ -355,9 +380,15 @@ export default function AdminPanel({
             {t.key === "links" && <LinkChainIcon className="h-4 w-4" />}
             {t.key === "modules" && <GridIcon className="h-4 w-4" />}
             {t.key === "module-access" && <KeyIcon className="h-4 w-4" />}
+            {t.key === "access-requests" && <MailIcon className="h-4 w-4" />}
             {t.key === "permissions" && <ShieldIcon className="h-4 w-4" />}
             {t.key === "audit" && <ClockListIcon className="h-4 w-4" />}
             {t.label}
+            {t.key === "access-requests" && accessRequests.length > 0 && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-white/20 px-1 text-[10px] font-bold">
+                {accessRequests.length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -378,6 +409,9 @@ export default function AdminPanel({
           moduleAdmins={moduleAdmins}
           setModuleAdmins={setModuleAdmins}
         />
+      )}
+      {tab === "access-requests" && canManageUsers && (
+        <AccessRequestsSection requests={accessRequests} setRequests={setAccessRequests} />
       )}
       {tab === "permissions" && canManageUsers && (
         <PermissionsSection modules={modules} roles={roles} initialGrants={initialPermissionGrants} />
@@ -2004,6 +2038,70 @@ function ModuleAccessSection({
         ))}
         {modules.length === 0 && <p className="text-sm text-zinc-500">Nenhum módulo cadastrado ainda.</p>}
       </div>
+    </section>
+  );
+}
+
+function AccessRequestsSection({
+  requests,
+  setRequests,
+}: {
+  requests: AccessRequestRow[];
+  setRequests: (r: AccessRequestRow[]) => void;
+}) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  async function handleDismiss(request: AccessRequestRow) {
+    setPendingId(request.id);
+    const res = await fetch(`/api/access-requests/${request.id}`, { method: "DELETE" });
+    setPendingId(null);
+    if (res.ok) {
+      setRequests(requests.filter((r) => r.id !== request.id));
+    }
+  }
+
+  return (
+    <section className={cardClass}>
+      <h2 className="mb-1 text-lg font-semibold text-white">Solicitações de acesso</h2>
+      <p className="mb-4 text-xs text-zinc-500">
+        Pedidos enviados pela tela de login por quem ainda não tem conta.
+      </p>
+
+      {requests.length === 0 ? (
+        <p className="text-sm text-zinc-500">Nenhuma solicitação pendente.</p>
+      ) : (
+        <ul className="space-y-3">
+          {requests.map((r) => (
+            <li key={r.id} className="rounded-xl border border-[#3a3335] bg-[#181516] p-4">
+              <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">{r.name}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    {new Date(r.createdAt).toLocaleString("pt-BR")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={pendingId === r.id}
+                  onClick={() => handleDismiss(r)}
+                  className={`inline-flex items-center gap-1 ${ghostButtonClass}`}
+                  title="Marcar como resolvido e remover da lista"
+                >
+                  <TrashIcon className="h-3.5 w-3.5" /> Descartar
+                </button>
+              </div>
+              <p className="mb-1 text-xs text-zinc-400">
+                <span className="font-medium text-zinc-300">Motivo: </span>
+                {r.reason}
+              </p>
+              <p className="text-xs text-zinc-400">
+                <span className="font-medium text-zinc-300">Quem passou o link: </span>
+                {r.referredBy}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

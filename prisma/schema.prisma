@@ -142,6 +142,15 @@ model Team {
   managers User[] @relation("TeamManagers")
 }
 
+// Pedido de acesso feito por alguém sem conta, pela tela de login.
+model AccessRequest {
+  id         String   @id @default(cuid())
+  name       String
+  reason     String
+  referredBy String
+  createdAt  DateTime @default(now())
+}
+
 model Link {
   id          String  @id @default(cuid())
   title       String

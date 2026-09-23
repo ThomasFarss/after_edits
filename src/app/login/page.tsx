@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { AccessRequestButton } from "./access-request";
 
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   left: `${(i * 37) % 100}%`,
@@ -240,6 +241,8 @@ export default function LoginPage() {
               )}
               {loading ? "Entrando..." : "Entrar"}
             </button>
+
+            <AccessRequestButton />
           </form>
         </div>
       </div>
