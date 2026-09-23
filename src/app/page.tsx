@@ -125,5 +125,5 @@ export default async function Home() {
     };
   }
 
-  return <Dashboard modules={modules} adminData={adminData} />;
+  return <Dashboard modules={modules} adminData={adminData} canManageLinks={canManageLinks} />;
 }

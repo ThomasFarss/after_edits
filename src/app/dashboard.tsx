@@ -6,6 +6,7 @@ import AnimatedBackground from "./animated-background";
 import LogoutButton from "./logout-button";
 import { getModuleIcon } from "./module-icons";
 import AdminPanel, { type AdminData } from "./admin/admin-panel";
+import { LinkQuickEditButton } from "./link-quick-edit";
 
 export type DashboardLink = {
   id: string;
@@ -25,15 +26,28 @@ export type DashboardModule = {
 };
 
 export default function Dashboard({
-  modules,
+  modules: initialModules,
   adminData,
+  canManageLinks,
 }: {
   modules: DashboardModule[];
   adminData: AdminData | null;
+  canManageLinks: boolean;
 }) {
-  const [activeModule, setActiveModule] = useState<string>(modules[0]?.key ?? "");
+  const [modules, setModules] = useState(initialModules);
+  const [activeModule, setActiveModule] = useState<string>(initialModules[0]?.key ?? "");
   const current = modules.find((m) => m.key === activeModule) ?? modules[0];
   const isAdminTab = current?.key === "admin" && adminData;
+
+  function handleLinkUpdated(moduleKey: string, updatedLink: DashboardLink) {
+    setModules((prev) =>
+      prev.map((m) =>
+        m.key === moduleKey
+          ? { ...m, links: m.links.map((l) => (l.id === updatedLink.id ? updatedLink : l)) }
+          : m
+      )
+    );
+  }
 
   if (!current) {
     return (
@@ -118,17 +132,22 @@ export default function Dashboard({
         ) : (
         <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {current.links.map((link) => (
-            <a
+            <div
               key={link.id}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group animated-border rounded-2xl p-[1px] transition-transform hover:-translate-y-1"
+              className="group relative animated-border rounded-2xl p-[1px] transition-transform hover:-translate-y-1"
               style={{ animationPlayState: "paused" }}
             >
-              <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
+              {canManageLinks && (
+                <LinkQuickEditButton link={link} modules={modules} onUpdated={handleLinkUpdated} />
+              )}
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60"
+              >
                 <div>
-                  <div className="mb-2 flex items-center gap-2">
+                  <div className="mb-2 flex items-center gap-2 pr-8">
                     <span className="h-4 w-4 text-[#ca2027]">
                       {getModuleIcon(link.icon ?? "default")}
                     </span>
@@ -156,8 +175,8 @@ export default function Dashboard({
                     />
                   </svg>
                 </span>
-              </div>
-            </a>
+              </a>
+            </div>
           ))}
         </div>
         )}
