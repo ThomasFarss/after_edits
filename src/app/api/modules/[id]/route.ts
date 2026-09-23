@@ -45,7 +45,28 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (response) return response;
 
   const { id } = await params;
-  await prisma.link.deleteMany({ where: { moduleId: id } });
-  await prisma.module.delete({ where: { id } });
+  const moduleRecord = await prisma.module.findUnique({ where: { id } });
+  if (!moduleRecord) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+  if (moduleRecord.isActive) {
+    return NextResponse.json(
+      { error: "Desative o módulo antes de excluí-lo." },
+      { status: 409 }
+    );
+  }
+
+  await prisma.$transaction([
+    prisma.link.deleteMany({ where: { moduleId: id } }),
+    prisma.userModuleOverride.deleteMany({ where: { moduleId: id } }),
+    prisma.roleModulePermission.deleteMany({
+      where: { modulePermission: { moduleId: id } },
+    }),
+    prisma.modulePermission.deleteMany({ where: { moduleId: id } }),
+    prisma.rolePermission.deleteMany({
+      where: { permission: { key: moduleRecord.permissionKey } },
+    }),
+    prisma.permission.deleteMany({ where: { key: moduleRecord.permissionKey } }),
+    prisma.module.delete({ where: { id } }),
+  ]);
+
   return NextResponse.json({ ok: true });
 }

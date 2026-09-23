@@ -1319,6 +1319,21 @@ function ModulesSection({
     }
   }
 
+  const [deleteError, setDeleteError] = useState("");
+
+  async function handleDelete(module: ModuleRow) {
+    if (!confirm(`Excluir o módulo "${module.label}"? Os links dele também serão apagados.`)) return;
+    setDeleteError("");
+    const res = await fetch(`/api/modules/${module.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setModules(modules.filter((m) => m.id !== module.id));
+      onChange();
+    } else {
+      const data = await res.json();
+      setDeleteError(typeof data.error === "string" ? data.error : "Erro ao excluir módulo");
+    }
+  }
+
   async function handleToggleActive(module: ModuleRow) {
     const res = await fetch(`/api/modules/${module.id}`, {
       method: "PATCH",
@@ -1531,6 +1546,8 @@ function ModulesSection({
         </form>
       </CollapsibleForm>
 
+      {deleteError && <p className="mb-4 text-sm text-[#ff6b70]">{deleteError}</p>}
+
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
@@ -1570,13 +1587,24 @@ function ModulesSection({
                   </span>
                 </td>
                 <td className="py-2">
-                  <button
-                    onClick={() => handleToggleActive(m)}
-                    className={ghostButtonClass}
-                    title="Controla se o módulo aparece no menu"
-                  >
-                    {m.isActive ? "Desativar" : "Ativar"}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleToggleActive(m)}
+                      className={ghostButtonClass}
+                      title="Controla se o módulo aparece no menu"
+                    >
+                      {m.isActive ? "Desativar" : "Ativar"}
+                    </button>
+                    {!m.isActive && (
+                      <button
+                        onClick={() => handleDelete(m)}
+                        className={`inline-flex items-center gap-1 ${dangerButtonClass}`}
+                        title="Ação permanente — apaga o módulo e seus links"
+                      >
+                        <TrashIcon className="h-3.5 w-3.5" /> Excluir
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
