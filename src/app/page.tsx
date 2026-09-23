@@ -7,9 +7,10 @@ export default async function Home() {
   const session = await auth();
   // Busca direto do banco (não do JWT) pra que módulos/permissões criados
   // depois do login apareçam sem precisar relogar.
-  const permissions = session?.user?.id
-    ? (await getFreshUserAccess(session.user.id)).permissions
-    : [];
+  const access = session?.user?.id
+    ? await getFreshUserAccess(session.user.id)
+    : { permissions: [], modulePermissions: [], moduleAdminIds: [] };
+  const permissions = access.permissions;
 
   const baseModules = await prisma.module.findMany({
     where: {
@@ -25,20 +26,26 @@ export default async function Home() {
     const overrides = await prisma.userModuleOverride.findMany({
       where: { userId: session.user.id },
     });
-    if (overrides.length > 0) {
-      const blockedIds = new Set(overrides.filter((o) => !o.granted).map((o) => o.moduleId));
-      const grantedIds = overrides.filter((o) => o.granted).map((o) => o.moduleId);
-      const existingIds = new Set(baseModules.map((m) => m.id));
-      const missingGrantedIds = grantedIds.filter((id) => !existingIds.has(id));
+    const blockedIds = new Set(overrides.filter((o) => !o.granted).map((o) => o.moduleId));
+    // Um admin delegado de módulo ("Acesso módulo") enxerga a aba mesmo que
+    // seu papel não desse essa permissão — um override explícito de bloqueio
+    // ainda prevalece.
+    const grantedIds = new Set([
+      ...overrides.filter((o) => o.granted).map((o) => o.moduleId),
+      ...access.moduleAdminIds,
+    ]);
+    const existingIds = new Set(baseModules.map((m) => m.id));
+    const missingGrantedIds = [...grantedIds].filter((id) => !existingIds.has(id));
 
-      const extraModules = missingGrantedIds.length
-        ? await prisma.module.findMany({
-            where: { id: { in: missingGrantedIds }, isActive: true },
-            orderBy: { order: "asc" },
-            include: { links: { orderBy: { order: "asc" } } },
-          })
-        : [];
+    const extraModules = missingGrantedIds.length
+      ? await prisma.module.findMany({
+          where: { id: { in: missingGrantedIds }, isActive: true },
+          orderBy: { order: "asc" },
+          include: { links: { orderBy: { order: "asc" } } },
+        })
+      : [];
 
+    if (blockedIds.size > 0 || extraModules.length > 0) {
       modules = [...baseModules.filter((m) => !blockedIds.has(m.id)), ...extraModules].sort(
         (a, b) => a.order - b.order
       );
@@ -109,6 +116,16 @@ export default async function Home() {
       });
     }
 
+    const moduleAdmins = canManageUsers
+      ? await prisma.moduleAdmin.findMany({
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+            module: { select: { id: true, key: true, label: true, icon: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : [];
+
     adminData = {
       users,
       roles,
@@ -122,8 +139,18 @@ export default async function Home() {
       canManageLinks,
       canManageModules,
       permissionGrants,
+      moduleAdmins,
     };
   }
 
-  return <Dashboard modules={modules} adminData={adminData} canManageLinks={canManageLinks} />;
+  // Quais módulos o usuário pode gerenciar (links + visibilidade) direto pelo
+  // dashboard: todos, se tiver links.manage; senão só os que administra via
+  // "Acesso módulo".
+  const editableModuleIds = canManageLinks
+    ? modules.map((m) => m.id)
+    : modules.filter((m) => access.moduleAdminIds.includes(m.id)).map((m) => m.id);
+
+  return (
+    <Dashboard modules={modules} adminData={adminData} editableModuleIds={editableModuleIds} />
+  );
 }

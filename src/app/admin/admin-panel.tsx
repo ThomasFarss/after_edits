@@ -52,6 +52,12 @@ export type AuditLogRow = {
 
 export type PermissionGrant = { roleId: string; moduleId: string };
 
+export type ModuleAdminRow = {
+  id: string;
+  user: { id: string; name: string; email: string };
+  module: { id: string; key: string; label: string; icon: string };
+};
+
 export type AdminData = {
   users: UserRow[];
   roles: Role[];
@@ -62,6 +68,7 @@ export type AdminData = {
   canManageLinks: boolean;
   canManageModules: boolean;
   permissionGrants: PermissionGrant[];
+  moduleAdmins: ModuleAdminRow[];
 };
 
 const cardClass =
@@ -152,6 +159,18 @@ function ClockListIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
+      />
     </svg>
   );
 }
@@ -284,6 +303,7 @@ export default function AdminPanel({
   canManageLinks,
   canManageModules,
   initialPermissionGrants,
+  initialModuleAdmins,
 }: {
   initialUsers: UserRow[];
   roles: Role[];
@@ -294,10 +314,12 @@ export default function AdminPanel({
   canManageLinks: boolean;
   canManageModules: boolean;
   initialPermissionGrants: PermissionGrant[];
+  initialModuleAdmins: ModuleAdminRow[];
 }) {
   const [users, setUsers] = useState(initialUsers);
   const [modules, setModules] = useState(initialModules);
   const [auditTotal, setAuditTotal] = useState(initialAuditLogsTotal);
+  const [moduleAdmins, setModuleAdmins] = useState(initialModuleAdmins);
   const router = useRouter();
 
   function refresh() {
@@ -313,6 +335,7 @@ export default function AdminPanel({
     { key: "users", label: "Usuários", show: canManageUsers },
     { key: "links", label: "Links", show: canManageLinks },
     { key: "modules", label: "Módulos", show: canManageModules },
+    { key: "module-access", label: "Acesso módulo", show: canManageUsers },
     { key: "permissions", label: "Permissões", show: canManageUsers },
     { key: "audit", label: "Auditoria", show: canManageUsers },
   ] as const;
@@ -378,6 +401,7 @@ export default function AdminPanel({
             {t.key === "users" && <UsersIcon className="h-4 w-4" />}
             {t.key === "links" && <LinkChainIcon className="h-4 w-4" />}
             {t.key === "modules" && <GridIcon className="h-4 w-4" />}
+            {t.key === "module-access" && <KeyIcon className="h-4 w-4" />}
             {t.key === "permissions" && <ShieldIcon className="h-4 w-4" />}
             {t.key === "audit" && <ClockListIcon className="h-4 w-4" />}
             {t.label}
@@ -393,6 +417,14 @@ export default function AdminPanel({
       )}
       {tab === "modules" && canManageModules && (
         <ModulesSection modules={modules} setModules={setModules} roles={roles} onChange={refresh} />
+      )}
+      {tab === "module-access" && canManageUsers && (
+        <ModuleAccessSection
+          modules={modules}
+          users={users}
+          moduleAdmins={moduleAdmins}
+          setModuleAdmins={setModuleAdmins}
+        />
       )}
       {tab === "permissions" && canManageUsers && (
         <PermissionsSection modules={modules} roles={roles} initialGrants={initialPermissionGrants} />
@@ -1881,6 +1913,129 @@ function ModulesSection({
             ))}
           </tbody>
         </table>
+      </div>
+    </section>
+  );
+}
+
+function ModuleAccessSection({
+  modules,
+  users,
+  moduleAdmins,
+  setModuleAdmins,
+}: {
+  modules: ModuleRow[];
+  users: UserRow[];
+  moduleAdmins: ModuleAdminRow[];
+  setModuleAdmins: (m: ModuleAdminRow[]) => void;
+}) {
+  const [selectedModuleId, setSelectedModuleId] = useState(modules[0]?.id ?? "");
+  const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleAssign(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!selectedModuleId || !selectedUserId) return;
+    setLoading(true);
+    const res = await fetch("/api/module-admins", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: selectedUserId, moduleId: selectedModuleId }),
+    });
+    setLoading(false);
+    if (res.ok) {
+      const created: ModuleAdminRow = await res.json();
+      setModuleAdmins([created, ...moduleAdmins]);
+    } else {
+      const data = await res.json();
+      setError(typeof data.error === "string" ? data.error : "Erro ao conceder acesso");
+    }
+  }
+
+  async function handleRevoke(assignment: ModuleAdminRow) {
+    if (!confirm(`Remover ${assignment.user.name} como admin de "${assignment.module.label}"?`)) return;
+    const res = await fetch(`/api/module-admins/${assignment.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setModuleAdmins(moduleAdmins.filter((ma) => ma.id !== assignment.id));
+    }
+  }
+
+  const byModule = modules.map((m) => ({
+    module: m,
+    admins: moduleAdmins.filter((ma) => ma.module.id === m.id),
+  }));
+
+  return (
+    <section className={cardClass}>
+      <h2 className="mb-1 text-lg font-semibold text-white">Acesso módulo</h2>
+      <p className="mb-4 text-xs text-zinc-500">
+        Dê a alguém acesso de admin sobre um módulo específico: essa pessoa passa a poder
+        adicionar/editar/excluir os links daquele módulo e decidir quem pode vê-lo, direto pela
+        própria aba do módulo — sem precisar de acesso ao restante do Admin. Você (Admin) continua
+        podendo gerenciar todos os módulos normalmente.
+      </p>
+
+      {error && <p className="mb-4 text-sm text-[#ff6b70]">{error}</p>}
+
+      <form onSubmit={handleAssign} className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <select className={inputClass} value={selectedModuleId} onChange={(e) => setSelectedModuleId(e.target.value)}>
+          {modules.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+        <select className={inputClass} value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name} ({u.email})
+            </option>
+          ))}
+        </select>
+        <button type="submit" disabled={loading} className={buttonClass}>
+          {loading ? "Adicionando..." : "Dar acesso"}
+        </button>
+      </form>
+
+      <div className="space-y-4">
+        {byModule.map(({ module, admins }) => (
+          <div key={module.id} className="rounded-xl border border-[#3a3335] bg-[#181516] p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#ca2027]/10 text-[#ff8a8d]">
+                <span className="h-4 w-4">{getModuleIcon(module.icon)}</span>
+              </span>
+              <p className="text-sm font-medium text-zinc-100">{module.label}</p>
+            </div>
+            {admins.length === 0 ? (
+              <p className="pl-9 text-xs text-zinc-500">Nenhum admin delegado.</p>
+            ) : (
+              <ul className="space-y-1.5 pl-9">
+                {admins.map((ma) => (
+                  <li
+                    key={ma.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#3a3335] bg-[#1c1719] px-3 py-1.5"
+                  >
+                    <div>
+                      <span className="text-sm text-zinc-100">{ma.user.name}</span>
+                      <span className="ml-2 text-xs text-zinc-500">{ma.user.email}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRevoke(ma)}
+                      className={`inline-flex items-center gap-1 ${dangerButtonClass}`}
+                      title="Remover acesso de admin desse módulo"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" /> Remover
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+        {modules.length === 0 && <p className="text-sm text-zinc-500">Nenhum módulo cadastrado ainda.</p>}
       </div>
     </section>
   );

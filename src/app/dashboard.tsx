@@ -7,6 +7,7 @@ import LogoutButton from "./logout-button";
 import { getModuleIcon } from "./module-icons";
 import AdminPanel, { type AdminData } from "./admin/admin-panel";
 import { LinkQuickActions } from "./link-quick-edit";
+import { AddLinkCard, ModuleVisibilityButton } from "./module-access";
 
 export type DashboardLink = {
   id: string;
@@ -28,16 +29,17 @@ export type DashboardModule = {
 export default function Dashboard({
   modules: initialModules,
   adminData,
-  canManageLinks,
+  editableModuleIds,
 }: {
   modules: DashboardModule[];
   adminData: AdminData | null;
-  canManageLinks: boolean;
+  editableModuleIds: string[];
 }) {
   const [modules, setModules] = useState(initialModules);
   const [activeModule, setActiveModule] = useState<string>(initialModules[0]?.key ?? "");
   const current = modules.find((m) => m.key === activeModule) ?? modules[0];
   const isAdminTab = current?.key === "admin" && adminData;
+  const canManageCurrent = current ? editableModuleIds.includes(current.id) : false;
 
   function handleLinkUpdated(moduleKey: string, updatedLink: DashboardLink) {
     setModules((prev) =>
@@ -54,6 +56,12 @@ export default function Dashboard({
       prev.map((m) =>
         m.key === moduleKey ? { ...m, links: m.links.filter((l) => l.id !== linkId) } : m
       )
+    );
+  }
+
+  function handleLinkCreated(moduleKey: string, newLink: DashboardLink) {
+    setModules((prev) =>
+      prev.map((m) => (m.key === moduleKey ? { ...m, links: [...m.links, newLink] } : m))
     );
   }
 
@@ -115,14 +123,19 @@ export default function Dashboard({
       </nav>
 
       <main className="relative mx-auto w-full max-w-6xl flex-1 px-6 py-12 sm:px-10">
-        <div className="fade-in-up mb-8">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-1 text-xs font-medium text-[#ff8a8d]">
-            <span className="h-4 w-4">{getModuleIcon(current.icon)}</span>
-            Módulo
+        <div className="fade-in-up mb-8 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-1 text-xs font-medium text-[#ff8a8d]">
+              <span className="h-4 w-4">{getModuleIcon(current.icon)}</span>
+              Módulo
+            </div>
+            <h2 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
+              {current.label}
+            </h2>
           </div>
-          <h2 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-            {current.label}
-          </h2>
+          {!isAdminTab && canManageCurrent && (
+            <ModuleVisibilityButton moduleId={current.id} moduleLabel={current.label} />
+          )}
         </div>
 
         {isAdminTab && adminData ? (
@@ -136,6 +149,7 @@ export default function Dashboard({
             canManageLinks={adminData.canManageLinks}
             canManageModules={adminData.canManageModules}
             initialPermissionGrants={adminData.permissionGrants}
+            initialModuleAdmins={adminData.moduleAdmins}
           />
         ) : (
         <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +159,7 @@ export default function Dashboard({
               className="group relative animated-border rounded-2xl p-[1px] transition-transform hover:-translate-y-1"
               style={{ animationPlayState: "paused" }}
             >
-              {canManageLinks && (
+              {canManageCurrent && (
                 <LinkQuickActions
                   link={link}
                   modules={modules}
@@ -191,6 +205,12 @@ export default function Dashboard({
               </a>
             </div>
           ))}
+          {canManageCurrent && (
+            <AddLinkCard
+              moduleId={current.id}
+              onCreated={(link) => handleLinkCreated(current.key, link)}
+            />
+          )}
         </div>
         )}
       </main>

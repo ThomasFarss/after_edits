@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getFreshUserAccess } from "@/lib/permissions";
 import AdminPanel from "./admin-panel";
 
 export default async function AdminPage() {
   const session = await auth();
-  const permissions = session?.user?.permissions ?? [];
+  const permissions = session?.user?.id ? (await getFreshUserAccess(session.user.id)).permissions : [];
 
   if (!session?.user || !permissions.includes("users.manage")) {
     redirect("/");
@@ -59,6 +60,14 @@ export default async function AdminPage() {
     return p.roles.map((rp) => ({ roleId: rp.roleId, moduleId }));
   });
 
+  const moduleAdmins = await prisma.moduleAdmin.findMany({
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      module: { select: { id: true, key: true, label: true, icon: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
   return (
     <AdminPanel
       initialUsers={users}
@@ -73,6 +82,7 @@ export default async function AdminPage() {
       canManageLinks={permissions.includes("links.manage")}
       canManageModules={permissions.includes("modules.manage")}
       initialPermissionGrants={permissionGrants}
+      initialModuleAdmins={moduleAdmins}
     />
   );
 }

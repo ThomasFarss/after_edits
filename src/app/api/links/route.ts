@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/api-auth";
+import { requirePermission, requireModuleManage } from "@/lib/api-auth";
 
 const createLinkSchema = z.object({
   title: z.string().min(1),
@@ -27,14 +27,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { response } = await requirePermission("links.manage");
-  if (response) return response;
-
   const body = await request.json();
   const parsed = createLinkSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
+
+  const { response } = await requireModuleManage(parsed.data.moduleId);
+  if (response) return response;
 
   const link = await prisma.link.create({ data: parsed.data });
   return NextResponse.json(link, { status: 201 });

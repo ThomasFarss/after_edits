@@ -24,6 +24,7 @@ model User {
   team         Team?      @relation("TeamMembers", fields: [teamId], references: [id])
   managedTeams Team[]     @relation("TeamManagers")
   moduleOverrides UserModuleOverride[]
+  moduleAdminOf   ModuleAdmin[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -81,6 +82,20 @@ model Module {
   links              Link[]
   modulePermissions  ModulePermission[]
   moduleOverrides    UserModuleOverride[]
+  moduleAdmins       ModuleAdmin[]
+}
+
+// Admin delegado de um módulo específico: pode gerenciar os links daquele
+// módulo e quem pode vê-lo, sem precisar da permissão global links.manage.
+model ModuleAdmin {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId  String
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, moduleId])
 }
 
 model UserModuleOverride {
