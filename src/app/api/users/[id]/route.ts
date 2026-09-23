@@ -73,10 +73,10 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const { session, response } = await requirePermission("users.manage");
+  const { session, access, response } = await requirePermission("users.manage");
   if (response) return response;
 
-  if (!hasModulePermission(session, "admin", "DELETE")) {
+  if (!hasModulePermission(access.modulePermissions, "admin", "DELETE")) {
     return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
   }
 

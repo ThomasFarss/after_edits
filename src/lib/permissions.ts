@@ -1,11 +1,40 @@
-import type { Session } from "next-auth";
 import type { Action } from "@prisma/client";
+import { prisma } from "./prisma";
+
+export type UserAccess = {
+  permissions: string[];
+  modulePermissions: string[];
+};
+
+// Busca as permissões direto do banco em vez de confiar no JWT: a sessão
+// (strategy "jwt") só grava permissions/modulePermissions no login, então um
+// usuário logado não veria um módulo/permissão criado depois até relogar.
+export async function getFreshUserAccess(userId: string): Promise<UserAccess> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      role: {
+        include: {
+          permissions: { include: { permission: true } },
+          modulePermissions: { include: { modulePermission: { include: { module: true } } } },
+        },
+      },
+    },
+  });
+  if (!user) return { permissions: [], modulePermissions: [] };
+
+  return {
+    permissions: user.role.permissions.map((rp) => rp.permission.key),
+    modulePermissions: user.role.modulePermissions.map(
+      (rmp) => `${rmp.modulePermission.module.key}:${rmp.modulePermission.action}`
+    ),
+  };
+}
 
 export function hasModulePermission(
-  session: Session | null | undefined,
+  modulePermissions: string[],
   moduleKey: string,
   action: Action
 ): boolean {
-  const modulePermissions = session?.user?.modulePermissions ?? [];
   return modulePermissions.includes(`${moduleKey}:${action}`);
 }

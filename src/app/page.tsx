@@ -1,10 +1,15 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getFreshUserAccess } from "@/lib/permissions";
 import Dashboard from "./dashboard";
 
 export default async function Home() {
   const session = await auth();
-  const permissions = session?.user?.permissions ?? [];
+  // Busca direto do banco (não do JWT) pra que módulos/permissões criados
+  // depois do login apareçam sem precisar relogar.
+  const permissions = session?.user?.id
+    ? (await getFreshUserAccess(session.user.id)).permissions
+    : [];
 
   const baseModules = await prisma.module.findMany({
     where: {
