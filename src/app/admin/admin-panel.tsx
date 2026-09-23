@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "../module-icons";
 import { ModalPortal } from "../modal-portal";
 import { handleIconFileSelect } from "@/lib/icon-upload";
+import { PasswordInput } from "../password-input";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
 
@@ -25,6 +26,7 @@ export type LinkRow = {
   url: string;
   description: string | null;
   icon: string | null;
+  password: string | null;
   order: number;
   moduleId: string;
 };
@@ -1048,6 +1050,7 @@ function LinksSection({
     title: "",
     url: "",
     description: "",
+    password: "",
     icon: "default",
     moduleId: modules[0]?.id ?? "",
   });
@@ -1072,7 +1075,7 @@ function LinksSection({
           m.id === created.moduleId ? { ...m, links: [...m.links, created] } : m
         )
       );
-      setForm({ title: "", url: "", description: "", icon: "default", moduleId: modules[0]?.id ?? "" });
+      setForm({ title: "", url: "", description: "", password: "", icon: "default", moduleId: modules[0]?.id ?? "" });
       setCustomIconUrl("");
       onChange();
     } else {
@@ -1157,6 +1160,14 @@ function LinksSection({
                 placeholder="Uma linha explicando o que é"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-zinc-500">Senha do arquivo (opcional)</label>
+              <PasswordInput
+                inputClassName={inputClass}
+                value={form.password}
+                onChange={(password) => setForm({ ...form, password })}
               />
             </div>
             <div>
@@ -1381,6 +1392,7 @@ function LinkEditRow({
   const [title, setTitle] = useState(link.title);
   const [url, setUrl] = useState(link.url);
   const [description, setDescription] = useState(link.description ?? "");
+  const [password, setPassword] = useState(link.password ?? "");
   const [icon, setIcon] = useState(link.icon ?? "default");
   const [moduleId, setModuleId] = useState(link.moduleId);
   const [customIconUrl, setCustomIconUrl] = useState(isCustomIconUrl(link.icon ?? "") ? link.icon ?? "" : "");
@@ -1427,6 +1439,10 @@ function LinkEditRow({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descrição"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Senha do arquivo (opcional)</label>
+            <PasswordInput inputClassName={inputClass} value={password} onChange={setPassword} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-400">Categoria / aba</label>
@@ -1510,7 +1526,7 @@ function LinkEditRow({
         <button
           type="button"
           className={buttonClass}
-          onClick={() => onSave({ title, url, description, icon, moduleId })}
+          onClick={() => onSave({ title, url, description, password, icon, moduleId })}
           title="Salvar alterações"
         >
           Salvar

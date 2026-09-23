@@ -8,6 +8,7 @@ const updateLinkSchema = z.object({
   url: z.string().url().optional(),
   description: z.string().optional().nullable(),
   icon: z.string().optional().nullable(),
+  password: z.string().optional().nullable(),
   moduleId: z.string().min(1).optional(),
   order: z.number().int().optional(),
 });

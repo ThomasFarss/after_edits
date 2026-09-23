@@ -8,6 +8,7 @@ const createLinkSchema = z.object({
   url: z.string().url(),
   description: z.string().optional(),
   icon: z.string().optional(),
+  password: z.string().optional(),
   moduleId: z.string().min(1),
   order: z.number().int().optional(),
 });

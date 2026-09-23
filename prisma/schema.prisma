@@ -157,6 +157,7 @@ model Link {
   url         String
   description String?
   icon        String?
+  password    String?
   order       Int     @default(0)
   moduleId    String
   module      Module  @relation(fields: [moduleId], references: [id])

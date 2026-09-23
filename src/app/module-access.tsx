@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
 import { ModalPortal } from "./modal-portal";
 import { handleIconFileSelect } from "@/lib/icon-upload";
+import { PasswordInput } from "./password-input";
 import type { DashboardLink } from "./dashboard";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
@@ -97,6 +98,7 @@ function AddLinkModal({
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [password, setPassword] = useState("");
   const [icon, setIcon] = useState("default");
   const [customIconUrl, setCustomIconUrl] = useState("");
   const [iconFileError, setIconFileError] = useState("");
@@ -109,7 +111,7 @@ function AddLinkModal({
     const res = await fetch("/api/links", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, url, description, icon, moduleId }),
+      body: JSON.stringify({ title, url, description, password, icon, moduleId }),
     });
     setSaving(false);
     if (res.ok) {
@@ -159,6 +161,10 @@ function AddLinkModal({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Descrição"
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Senha do arquivo (opcional)</label>
+                <PasswordInput inputClassName={inputClass} value={password} onChange={setPassword} />
               </div>
             </div>
 

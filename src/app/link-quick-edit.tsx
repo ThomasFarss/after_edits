@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
 import { ModalPortal } from "./modal-portal";
 import { handleIconFileSelect } from "@/lib/icon-upload";
+import { PasswordInput } from "./password-input";
 import type { DashboardLink, DashboardModule } from "./dashboard";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
@@ -120,6 +121,7 @@ function LinkQuickEditModal({
   const [title, setTitle] = useState(link.title);
   const [url, setUrl] = useState(link.url);
   const [description, setDescription] = useState(link.description ?? "");
+  const [password, setPassword] = useState(link.password ?? "");
   const [icon, setIcon] = useState(link.icon ?? "default");
   const [customIconUrl, setCustomIconUrl] = useState(
     isCustomIconUrl(link.icon ?? "") ? link.icon ?? "" : ""
@@ -136,7 +138,7 @@ function LinkQuickEditModal({
     const res = await fetch(`/api/links/${link.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, url, description, icon }),
+      body: JSON.stringify({ title, url, description, password, icon }),
     });
     setSaving(false);
     if (res.ok) {
@@ -207,6 +209,10 @@ function LinkQuickEditModal({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Descrição"
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-400">Senha do arquivo (opcional)</label>
+                <PasswordInput inputClassName={inputClass} value={password} onChange={setPassword} />
               </div>
             </div>
 
