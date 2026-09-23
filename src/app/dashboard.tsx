@@ -44,7 +44,7 @@ export default function Dashboard({
   }
 
   return (
-    <div className="relative min-h-screen text-zinc-50">
+    <div className="relative flex min-h-screen flex-col text-zinc-50">
       <AnimatedBackground />
 
       <nav className="sticky top-0 z-20 border-b border-[#ca2027]/25 bg-[#1c1719]/80 shadow-[0_1px_30px_rgba(202,32,39,0.15)] backdrop-blur-2xl">
@@ -92,7 +92,7 @@ export default function Dashboard({
         </div>
       </nav>
 
-      <main className="relative mx-auto max-w-6xl px-6 py-12 sm:px-10">
+      <main className="relative mx-auto w-full max-w-6xl flex-1 px-6 py-12 sm:px-10">
         <div className="fade-in-up mb-8">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-1 text-xs font-medium text-[#ff8a8d]">
             <span className="h-4 w-4">{getModuleIcon(current.icon)}</span>
