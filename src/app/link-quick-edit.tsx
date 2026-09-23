@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
+import { ModalPortal } from "./modal-portal";
 import type { DashboardLink, DashboardModule } from "./dashboard";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
@@ -197,15 +197,11 @@ function LinkQuickEditModal({
     }
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
+  return (
+    <ModalPortal onClose={onClose}>
       <div
         className="animated-border w-full max-w-2xl rounded-2xl p-[1px] shadow-[0_25px_70px_rgba(0,0,0,0.6)]"
         style={{ animationPlayState: "paused" }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="max-h-[85vh] overflow-y-auto rounded-2xl border border-[#3a3335] bg-[#181113] p-5">
           <div className="mb-4 flex items-start justify-between gap-3 border-b border-[#3a3335] pb-4">
@@ -351,7 +347,6 @@ function LinkQuickEditModal({
           </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </ModalPortal>
   );
 }

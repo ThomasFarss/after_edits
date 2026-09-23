@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "../module-icons";
+import { ModalPortal } from "../modal-portal";
 
 const ICON_OPTIONS = Object.keys(MODULE_ICONS);
 
@@ -453,19 +453,10 @@ function Modal({
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  // Portal pra fora da árvore: qualquer ancestral com transform/filter (ex:
-  // animações "both" como .fade-in-up) vira containing block pra
-  // position:fixed e quebra o overlay — renderizar direto no body evita isso.
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {children}
-      </div>
-    </div>,
-    document.body
+  return (
+    <ModalPortal onClose={onClose}>
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">{children}</div>
+    </ModalPortal>
   );
 }
 

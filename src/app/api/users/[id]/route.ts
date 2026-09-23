@@ -28,6 +28,34 @@ const updateUserSchema = z.object({
 
 type Params = { params: Promise<{ id: string }> };
 
+// Impede deixar o sistema sem nenhum Admin ativo: bloqueia trocar o papel do
+// último Admin ou desativá-lo/convidá-lo de novo.
+async function isLastActiveAdminBeingLocked(
+  userId: string,
+  newRoleId: string | undefined,
+  newStatus: "ACTIVE" | "INACTIVE" | "INVITED" | undefined
+) {
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true, role: { select: { name: true } } },
+  });
+  if (!target || target.role.name !== "Admin") return false;
+
+  const losingAdminRole = newRoleId !== undefined && newRoleId !== null;
+  const losingActiveStatus = newStatus !== undefined && newStatus !== "ACTIVE" && target.status === "ACTIVE";
+  if (!losingAdminRole && !losingActiveStatus) return false;
+
+  if (losingAdminRole) {
+    const newRole = await prisma.role.findUnique({ where: { id: newRoleId } });
+    if (newRole?.name === "Admin") return false;
+  }
+
+  const activeAdminCount = await prisma.user.count({
+    where: { status: "ACTIVE", role: { name: "Admin" } },
+  });
+  return activeAdminCount <= 1;
+}
+
 export async function GET(_request: Request, { params }: Params) {
   const { response } = await requirePermission("users.manage");
   if (response) return response;
@@ -50,6 +78,17 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   const { password, ...rest } = parsed.data;
+
+  const demotesOrDeactivatesAdmin =
+    (rest.roleId !== undefined || rest.status !== undefined) &&
+    (await isLastActiveAdminBeingLocked(id, rest.roleId, rest.status));
+  if (demotesOrDeactivatesAdmin) {
+    return NextResponse.json(
+      { error: "Não é possível remover o papel Admin ou desativar o último usuário Admin." },
+      { status: 400 }
+    );
+  }
+
   const data: Record<string, unknown> = { ...rest };
   if (password) {
     data.passwordHash = await bcrypt.hash(password, 10);
@@ -81,6 +120,22 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   const { id } = await params;
+
+  if (id === session?.user?.id) {
+    return NextResponse.json({ error: "Você não pode excluir sua própria conta." }, { status: 400 });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id }, select: { role: { select: { name: true } } } });
+  if (target?.role.name === "Admin") {
+    const adminCount = await prisma.user.count({ where: { role: { name: "Admin" } } });
+    if (adminCount <= 1) {
+      return NextResponse.json(
+        { error: "Não é possível excluir o último usuário Admin." },
+        { status: 400 }
+      );
+    }
+  }
+
   const deleted = await prisma.user.delete({ where: { id }, select: userSelect });
 
   await logAudit({
