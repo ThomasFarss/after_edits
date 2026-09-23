@@ -200,6 +200,22 @@ function EyeIcon({ className }: { className?: string }) {
   );
 }
 
+function EyeOffIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88" />
+    </svg>
+  );
+}
+
+function DotIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="4" />
+    </svg>
+  );
+}
+
 function RoleBadge({ roleName }: { roleName: string }) {
   const name = roleName?.toLowerCase?.() ?? "";
   if (name === "admin") {
@@ -766,11 +782,41 @@ function UserEditRow({
     if (!ok) setError("Erro ao salvar alterações.");
   }
 
-  const overrideOptions: { key: OverrideState; label: string }[] = [
-    { key: "inherit", label: "Padrão (papel)" },
-    { key: "allow", label: "Sempre mostrar" },
-    { key: "block", label: "Sempre ocultar" },
+  const overrideOptions: {
+    key: OverrideState;
+    label: string;
+    shortLabel: string;
+    icon: (props: { className?: string }) => React.ReactNode;
+    activeClass: string;
+  }[] = [
+    {
+      key: "inherit",
+      label: "Padrão (papel)",
+      shortLabel: "Padrão",
+      icon: DotIcon,
+      activeClass: "border-zinc-400 bg-zinc-400/15 text-zinc-200",
+    },
+    {
+      key: "allow",
+      label: "Sempre mostrar",
+      shortLabel: "Mostrar",
+      icon: EyeIcon,
+      activeClass: "border-emerald-500 bg-emerald-500/15 text-emerald-300",
+    },
+    {
+      key: "block",
+      label: "Sempre ocultar",
+      shortLabel: "Ocultar",
+      icon: EyeOffIcon,
+      activeClass: "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d]",
+    },
   ];
+
+  const overrideBadge: Record<OverrideState, { label: string; className: string }> = {
+    inherit: { label: "Padrão do papel", className: "border-zinc-500/30 bg-zinc-500/10 text-zinc-400" },
+    allow: { label: "Sempre visível", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" },
+    block: { label: "Sempre oculto", className: "border-[#ca2027]/30 bg-[#ca2027]/10 text-[#ff8a8d]" },
+  };
 
   return (
     <>
@@ -830,53 +876,78 @@ function UserEditRow({
         </td>
       </tr>
       <tr className="border-t border-[#ca2027]/20 bg-[#181516]">
-        <td className="py-3" colSpan={5}>
-          <p className="mb-2 text-xs font-semibold text-zinc-300">Visibilidade de módulos</p>
-          {overridesLoading ? (
-            <p className="text-xs text-zinc-500">Carregando...</p>
-          ) : (
-            <ul className="space-y-1.5">
-              {modules.map((m) => {
-                const currentState = overrides[m.id] ?? "inherit";
-                return (
-                  <li key={m.id} className="flex flex-wrap items-center gap-2">
-                    <span className="flex min-w-[140px] items-center gap-1.5 text-xs text-zinc-300">
-                      <span className="h-3.5 w-3.5 text-[#ca2027]">{getModuleIcon(m.icon)}</span>
-                      {m.label}
-                      {currentState !== "inherit" && (
-                        <span
-                          className={`ml-1 h-1.5 w-1.5 rounded-full ${
-                            currentState === "allow" ? "bg-emerald-400" : "bg-red-500"
-                          }`}
-                          title={currentState === "allow" ? "Override: sempre mostrar" : "Override: sempre ocultar"}
-                        />
-                      )}
-                    </span>
-                    <div className="flex gap-1">
-                      {overrideOptions.map((opt) => (
-                        <button
-                          key={opt.key}
-                          type="button"
-                          disabled={pendingModuleId === m.id}
-                          onClick={() => handleOverrideChange(m.id, opt.key)}
-                          className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors disabled:opacity-50 ${
-                            currentState === opt.key
-                              ? "border-[#ca2027] bg-[#ca2027]/15 text-[#ff8a8d]"
-                              : "border-[#3a3335] bg-[#181516] text-zinc-400 hover:border-[#ca2027]/40 hover:text-zinc-200"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </li>
-                );
-              })}
-              {modules.length === 0 && (
-                <li className="text-xs text-zinc-500">Nenhum módulo cadastrado ainda.</li>
-              )}
-            </ul>
-          )}
+        <td className="py-4" colSpan={5}>
+          <div className="rounded-xl border border-[#3a3335] bg-[#141112] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ca2027]/10 text-[#ff8a8d]">
+                <ShieldIcon className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-sm font-semibold text-zinc-200">Visibilidade de módulos</p>
+            </div>
+            <p className="mb-3 text-[11px] text-zinc-500">
+              Por padrão, o acesso segue o papel ({" "}
+              <span className="text-zinc-400">Padrão</span> ). Um override individual pode forçar
+              mostrar ou ocultar um módulo só pra este usuário.
+            </p>
+            {overridesLoading ? (
+              <p className="text-xs text-zinc-500">Carregando...</p>
+            ) : (
+              <ul className="space-y-2">
+                {modules.map((m) => {
+                  const currentState = overrides[m.id] ?? "inherit";
+                  const badge = overrideBadge[currentState];
+                  return (
+                    <li
+                      key={m.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#3a3335] bg-[#1c1719] px-3 py-2.5 transition-colors hover:border-[#3a3335]/80"
+                    >
+                      <div className="flex min-w-[160px] items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#ca2027]/10 text-[#ff8a8d]">
+                          <span className="h-4 w-4 overflow-hidden rounded">{getModuleIcon(m.icon)}</span>
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-zinc-100">{m.label}</p>
+                          <span
+                            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${badge.className}`}
+                          >
+                            {badge.label}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="inline-flex overflow-hidden rounded-lg border border-[#3a3335]">
+                        {overrideOptions.map((opt, i) => {
+                          const Icon = opt.icon;
+                          const isActive = currentState === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              disabled={pendingModuleId === m.id}
+                              onClick={() => handleOverrideChange(m.id, opt.key)}
+                              title={opt.label}
+                              className={`inline-flex items-center gap-1.5 border-l px-2.5 py-1.5 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                                i === 0 ? "border-l-0" : "border-[#3a3335]"
+                              } ${
+                                isActive
+                                  ? opt.activeClass
+                                  : "bg-[#181516] text-zinc-500 hover:bg-[#211d1f] hover:text-zinc-300"
+                              }`}
+                            >
+                              <Icon className="h-3 w-3" />
+                              <span className="hidden sm:inline">{opt.shortLabel}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </li>
+                  );
+                })}
+                {modules.length === 0 && (
+                  <li className="text-xs text-zinc-500">Nenhum módulo cadastrado ainda.</li>
+                )}
+              </ul>
+            )}
+          </div>
         </td>
       </tr>
     </>
