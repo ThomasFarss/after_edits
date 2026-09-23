@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
 // Portal compartilhado por todo modal do app. Ancestrais com transform/filter
@@ -15,6 +15,13 @@ export function ModalPortal({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  // Só fecha se o mousedown E o click aconteceram os dois direto no fundo
+  // (não em algo dentro do modal). Sem isso, selecionar/arrastar um texto
+  // dentro de um campo (ex: colando uma URL longa) e soltar o mouse um
+  // pouco fora do card fazia o "click" nativo cair no fundo e fechar o
+  // popup do nada.
+  const mouseDownOnBackdrop = useRef(false);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -28,9 +35,16 @@ export function ModalPortal({
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onMouseDown={(e) => {
+        mouseDownOnBackdrop.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (mouseDownOnBackdrop.current && e.target === e.currentTarget) onClose();
+      }}
     >
-      <div onClick={(e) => e.stopPropagation()}>{children}</div>
+      <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+        {children}
+      </div>
     </div>,
     document.body
   );
