@@ -1,20 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import authConfig from "@/auth.config";
 
-export function middleware(request: NextRequest) {
-  const isAuthenticated = request.cookies.has("after-edits-auth");
-  const { pathname } = request.nextUrl;
+// Instância edge-safe do Auth.js (sem Prisma/bcrypt) só pra ler a sessão
+// no middleware — mantém o bundle do Edge Function dentro do limite do plano.
+const { auth } = NextAuth(authConfig);
 
-  if (!isAuthenticated && pathname === "/") {
-    return NextResponse.redirect(new URL("/login", request.url));
+// Decisão: o middleware roda em edge runtime e não consegue consultar o
+// Prisma/Postgres a cada request de forma leve, então ele só garante que o
+// usuário está autenticado. A checagem fina de permissão por módulo
+// (permissionKey de cada rota, ex: /admin exigindo "module.admin.view")
+// é feita em Server Components (layout/page) que já rodam em Node e podem
+// consultar o banco diretamente.
+export default auth((req) => {
+  const isAuthenticated = !!req.auth;
+  const { pathname } = req.nextUrl;
+
+  if (!isAuthenticated && pathname !== "/login") {
+    const loginUrl = new URL("/login", req.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (isAuthenticated && pathname === "/login") {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: ["/", "/login"],
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|images).*)"],
 };

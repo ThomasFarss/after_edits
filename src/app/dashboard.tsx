@@ -2,61 +2,46 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { modules, type ModuleId } from "./data/links";
 import AnimatedBackground from "./animated-background";
 import LogoutButton from "./logout-button";
+import { getModuleIcon } from "./module-icons";
+import AdminPanel, { type AdminData } from "./admin/admin-panel";
 
-const MODULE_ICONS: Record<ModuleId, React.ReactNode> = {
-  videos: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15.75 10.5l4.72-2.36a.75.75 0 011.08.67v10.38a.75.75 0 01-1.08.67l-4.72-2.36M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 9.75v9A2.25 2.25 0 004.5 18.75z"
-      />
-    </svg>
-  ),
-  audios: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.5a.75.75 0 01-.75-.75v-6a.75.75 0 01.75-.75h2.25z"
-      />
-    </svg>
-  ),
-  musicas: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 9l10.5-2.25M9 9v10.5a2.25 2.25 0 11-2.25-2.25H9zm0 0V5.25a2.25 2.25 0 012.25-2.25H12a2.25 2.25 0 012.25 2.25v.75m0 0l4.5-.75m0 0v9.75a2.25 2.25 0 11-2.25-2.25h2.25"
-      />
-    </svg>
-  ),
-  packs: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M20.25 7.5l-8.25-4.5-8.25 4.5m16.5 0v9l-8.25 4.5M20.25 7.5l-8.25 4.5m0 0L3.75 7.5m8.25 4.5v9M3.75 7.5v9l8.25 4.5"
-      />
-    </svg>
-  ),
-  links: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13.5 10.5L21 3m0 0h-5.25M21 3v5.25M11.25 3H6.75A2.25 2.25 0 004.5 5.25v13.5A2.25 2.25 0 006.75 21h13.5a2.25 2.25 0 002.25-2.25v-4.5"
-      />
-    </svg>
-  ),
+export type DashboardLink = {
+  id: string;
+  title: string;
+  url: string;
+  description: string | null;
+  icon: string | null;
 };
 
-export default function Dashboard() {
-  const [activeModule, setActiveModule] = useState<ModuleId>("videos");
-  const current = modules.find((m) => m.id === activeModule)!;
+export type DashboardModule = {
+  id: string;
+  key: string;
+  label: string;
+  icon: string;
+  route: string;
+  links: DashboardLink[];
+};
+
+export default function Dashboard({
+  modules,
+  adminData,
+}: {
+  modules: DashboardModule[];
+  adminData: AdminData | null;
+}) {
+  const [activeModule, setActiveModule] = useState<string>(modules[0]?.key ?? "");
+  const current = modules.find((m) => m.key === activeModule) ?? modules[0];
+  const isAdminTab = current?.key === "admin" && adminData;
+
+  if (!current) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center text-zinc-400">
+        Nenhum módulo disponível para o seu usuário.
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen text-zinc-50">
@@ -87,14 +72,14 @@ export default function Dashboard() {
               {modules.map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => setActiveModule(m.id)}
+                  onClick={() => setActiveModule(m.key)}
                   className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${
-                    activeModule === m.id
+                    activeModule === m.key
                       ? "bg-gradient-to-r from-[#ca2027] to-[#a8181e] text-white shadow-[0_0_18px_rgba(202,32,39,0.55)]"
                       : "text-zinc-400 hover:bg-[#2a2426] hover:text-white"
                   }`}
                 >
-                  <span className="h-4 w-4">{MODULE_ICONS[m.id]}</span>
+                  <span className="h-4 w-4">{getModuleIcon(m.icon)}</span>
                   {m.label}
                 </button>
               ))}
@@ -110,19 +95,31 @@ export default function Dashboard() {
       <main className="relative mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <div className="fade-in-up mb-8">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ca2027]/40 bg-[#ca2027]/10 px-3 py-1 text-xs font-medium text-[#ff8a8d]">
-            <span className="h-4 w-4">{MODULE_ICONS[current.id]}</span>
+            <span className="h-4 w-4">{getModuleIcon(current.icon)}</span>
             Módulo
           </div>
           <h2 className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
             {current.label}
           </h2>
-          <p className="mt-2 text-zinc-400">{current.description}</p>
         </div>
 
+        {isAdminTab && adminData ? (
+          <AdminPanel
+            initialUsers={adminData.users}
+            roles={adminData.roles}
+            initialModules={adminData.modules}
+            initialAuditLogs={adminData.auditLogs}
+            initialAuditLogsTotal={adminData.auditLogsTotal}
+            canManageUsers={adminData.canManageUsers}
+            canManageLinks={adminData.canManageLinks}
+            canManageModules={adminData.canManageModules}
+            initialPermissionGrants={adminData.permissionGrants}
+          />
+        ) : (
         <div className="fade-in-up grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {current.links.map((link) => (
             <a
-              key={link.url}
+              key={link.id}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -131,17 +128,22 @@ export default function Dashboard() {
             >
               <div className="flex h-full flex-col justify-between rounded-2xl border border-[#3a3335] bg-[#211d1f]/85 p-5 backdrop-blur-xl transition-colors group-hover:border-[#ca2027]/60">
                 <div>
-                  <span className="font-semibold text-zinc-50 transition-colors group-hover:text-[#ff6b70]">
-                    {link.title}
-                  </span>
-                  <p className="mt-2 text-sm text-zinc-400">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="h-4 w-4 text-[#ca2027]">
+                      {getModuleIcon(link.icon ?? "default")}
+                    </span>
+                    <span className="font-semibold text-zinc-50 transition-colors group-hover:text-[#ff6b70]">
+                      {link.title}
+                    </span>
+                  </div>
+                  <p className="text-sm text-zinc-400">
                     {link.description}
                   </p>
                 </div>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#ca2027]">
+                <span className="pressable-btn mt-4 w-fit">
                   Acessar
                   <svg
-                    className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
+                    className="h-3 w-3"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -158,6 +160,7 @@ export default function Dashboard() {
             </a>
           ))}
         </div>
+        )}
       </main>
 
       <footer className="relative border-t border-[#3a3335] px-6 py-6 text-center text-sm text-zinc-500">

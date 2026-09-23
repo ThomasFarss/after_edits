@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  status       UserStatus @default(ACTIVE)
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  createdById  String?
+  createdBy    User?      @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers User[]     @relation("UserCreatedBy")
+  auditLogs    AuditLog[]
+  teamId       String?
+  team         Team?      @relation("TeamMembers", fields: [teamId], references: [id])
+  managedTeams Team[]     @relation("TeamManagers")
+  moduleOverrides UserModuleOverride[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  INVITED
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
+
+model Role {
+  id                String                  @id @default(cuid())
+  name              String                  @unique
+  users             User[]
+  permissions       RolePermission[]
+  modulePermissions RoleModulePermission[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+model Module {
+  id                 String              @id @default(cuid())
+  key                String              @unique
+  label              String
+  icon               String
+  route              String
+  order              Int                 @default(0)
+  isActive           Boolean             @default(true)
+  permissionKey      String
+  links              Link[]
+  modulePermissions  ModulePermission[]
+  moduleOverrides    UserModuleOverride[]
+}
+
+model UserModuleOverride {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId String
+  module   Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  granted  Boolean
+
+  @@unique([userId, moduleId])
+}
+
+enum Action {
+  VIEW
+  CREATE
+  EDIT
+  DELETE
+}
+
+model ModulePermission {
+  id       String                  @id @default(cuid())
+  moduleId String
+  module   Module                  @relation(fields: [moduleId], references: [id])
+  action   Action
+  roles    RoleModulePermission[]
+
+  @@unique([moduleId, action])
+}
+
+model RoleModulePermission {
+  roleId             String
+  role               Role             @relation(fields: [roleId], references: [id])
+  modulePermissionId String
+  modulePermission   ModulePermission @relation(fields: [modulePermissionId], references: [id])
+
+  @@id([roleId, modulePermissionId])
+}
+
+model Team {
+  id       String @id @default(cuid())
+  name     String @unique
+  members  User[] @relation("TeamMembers")
+  managers User[] @relation("TeamManagers")
+}
+
+model Link {
+  id          String  @id @default(cuid())
+  title       String
+  url         String
+  description String?
+  icon        String?
+  order       Int     @default(0)
+  moduleId    String
+  module      Module  @relation(fields: [moduleId], references: [id])
+}

@@ -139,6 +139,41 @@ body {
   animation: fade-in-up 0.6s ease-out both;
 }
 
+.pressable-btn {
+  --btn-bg: #ca2027;
+  --btn-shadow: #7c1317;
+  --btn-glow: rgba(202, 32, 39, 0.45);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-shadow);
+  border-radius: 0.6rem;
+  box-shadow: 0 6px 0 var(--btn-shadow);
+  transform: skew(-10deg);
+  transition: all 0.1s ease;
+  filter: drop-shadow(0 10px 16px var(--btn-glow));
+}
+
+.pressable-btn:hover {
+  filter: drop-shadow(0 12px 20px var(--btn-glow)) brightness(1.08);
+}
+
+.group:active .pressable-btn,
+.pressable-btn:active {
+  letter-spacing: 0px;
+  transform: skew(-10deg) translateY(6px);
+  box-shadow: 0 0 0 var(--btn-glow);
+}
+
 @keyframes shimmer-sweep {
   0% {
     background-position: -200% 0;
