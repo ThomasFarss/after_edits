@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { getModuleIcon, isCustomIconUrl, MODULE_ICONS } from "./module-icons";
 import type { DashboardLink, DashboardModule } from "./dashboard";
 
@@ -196,7 +197,7 @@ function LinkQuickEditModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"
       onClick={onClose}
@@ -350,6 +351,7 @@ function LinkQuickEditModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
